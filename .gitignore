@@ -1,6 +1,5 @@
-# Learner folders — commit only the template
-learners/*
-!learners/_template
+# Learner folders are committed; secrets stay out via the .env rule below
+# (and each learner folder has its own .gitignore as a second layer)
 
 # Python
 __pycache__/

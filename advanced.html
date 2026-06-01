@@ -573,7 +573,7 @@ p code, li code {
     <div class="warmup-tag">Quick win · 5 min</div>
     <h3>Establish your baseline</h3>
     <p>In <code>caching.py</code>, the warm-up is already written: it makes 3 calls with a large system prompt and prints <code>cache_creation_input_tokens</code> and <code>cache_read_input_tokens</code> for each. Run it:</p>
-    <pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
+    <pre class="code-omitted"><code>Implement this in your caching.py — see the matching # TODO:</code></pre>
     <p class="warmup-note">Run 1 creates the cache. Runs 2 and 3 read from it — much cheaper. Everything in this section is about maximizing how often you get run 2's numbers instead of run 1's.</p>
   </div>
 
@@ -587,7 +587,7 @@ p code, li code {
       <div class="chunk-body">
         <p>System prompts aren't the only thing worth caching. Large context documents — reference docs, codebases, knowledge bases — can be cached too. The rule: everything <em>before</em> <code>cache_control</code> in token order gets cached.</p>
         <p><strong>Task:</strong> In Section A1 of <code>caching.py</code>, make 2 calls that include <code>REFERENCE_DOC</code> in the user messages with <code>cache_control</code> on the document block. Change only the question between calls. Measure how many tokens are cached vs regular on each run.</p>
-<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
+<pre class="code-omitted"><code>Implement this in your caching.py — see the matching # TODO:</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>On call 2, what percentage of input tokens came from the cache? What's the minimum document size where caching breaks even (write cost ≈ read savings)? The API docs say cache writes cost 1.25× regular input tokens.</p>
@@ -659,7 +659,7 @@ p code, li code {
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Add reflection in 3 lines</h3>
     <p>Grab any response from a prior agent. Add a second call that reads the response and critiques it:</p>
-<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
+<pre class="code-omitted"><code>Implement this in your patterns.py — see the matching # TODO:</code></pre>
     <p class="warmup-note">That's reflection. One extra call that makes the output substantially better. The rest of this section builds on this idea systematically.</p>
   </div>
 
@@ -689,7 +689,7 @@ p code, li code {
       <div class="chunk-body">
         <p>Fork work to N independent subagents running in parallel. Each has its own context. Merge their results with a final synthesis call. Use <code>threading.Thread</code> — it's simpler than asyncio for this pattern.</p>
         <p><strong>Task:</strong> Complete the parallel fan-out in Section B2 of <code>patterns.py</code>. Three threads run simultaneously, one per framework (Django, FastAPI, Flask). After all threads complete, merge results with one synthesis call.</p>
-<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
+<pre class="code-omitted"><code>Implement this in your patterns.py — see the matching # TODO:</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Time the fan-out run vs running the same three subtasks sequentially. What's the speedup? Is it exactly 3× — or more/less? What determines the ceiling on parallelism here?</p>
@@ -840,7 +840,7 @@ p code, li code {
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Hello-world MCP server</h3>
     <p>Install FastMCP: <code>pip install fastmcp</code>. Then run the test mode:</p>
-<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
+<pre class="code-omitted"><code>Implement this in your mcp.py — see the matching # TODO:</code></pre>
     <p>You should see the <code>hello</code> tool, <code>write_file</code>, and <code>read_file</code> respond immediately — the server is running locally. The warm-up is pre-written. Your job from D1 onward is to extend it.</p>
     <p class="warmup-note">Notice: the tools look identical to Session 2's tool definitions. MCP just standardizes how they're discovered and called — the functions themselves don't change.</p>
   </div>
