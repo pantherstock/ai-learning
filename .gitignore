@@ -1,0 +1,25 @@
+# Learner folders — commit only the template
+learners/*
+!learners/_template
+
+# Python
+__pycache__/
+*.py[cod]
+.env
+*.log
+
+# Generated files
+*.txt
+research.md
+actions.txt
+api-libraries.md
+ml_history.txt
+fastapi.md
+ml_summary.txt
+mcp_test.txt
+python_history.txt
+tasks.md
+
+# OS
+.DS_Store
+Thumbs.db

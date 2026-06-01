@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agents — Advanced Topics</title>
+<style>
+:root {
+  --bg:         #FDFAF5;
+  --bg-card:    #F8F2E8;
+  --bg-sidebar: #F0E8DB;
+  --text:       #2C1E10;
+  --text-mid:   #6A5540;
+  --text-soft:  #9A8570;
+  --amber:      #C47020;
+  --amber-bg:   #FFF7EB;
+  --amber-bdr:  #E8981A;
+  --teal:       #1A7A58;
+  --teal-bg:    #EAF7F1;
+  --teal-bdr:   #3AAD7A;
+  --blue-bg:    #EEF4FF;
+  --blue-bdr:   #6090E0;
+  --code-bg:    #1C1410;
+  --code-text:  #F2E4CC;
+  --code-dim:   #A09080;
+  --border:     #E0D4C0;
+  --success:    #1A6A40;
+  --success-bg: #E8F7EE;
+  --sidebar-w:  248px;
+  --header-h:   56px;
+  --radius:     8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+/* ── Header ── */
+.site-header {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: #1C1410;
+  display: flex; align-items: center;
+  padding: 0 20px;
+  z-index: 200;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.header-inner {
+  width: 100%; display: flex;
+  justify-content: space-between; align-items: center;
+  max-width: 1200px; margin: 0 auto;
+}
+.header-title {
+  font-size: 15px; font-weight: 600;
+  color: #F2E4CC; letter-spacing: 0.01em;
+}
+.header-subtitle {
+  font-size: 12px; color: var(--text-soft);
+  margin-left: 8px;
+}
+.header-nav-link {
+  font-size: 12px; color: var(--amber);
+  text-decoration: none; font-weight: 500;
+}
+.header-nav-link:hover { text-decoration: underline; }
+.header-progress {
+  font-size: 13px; color: var(--amber);
+  font-weight: 500;
+}
+.hamburger {
+  display: none;
+  background: none; border: none;
+  color: #F2E4CC; font-size: 20px;
+  cursor: pointer; padding: 4px 8px;
+  margin-right: 12px;
+}
+
+/* ── Layout ── */
+.layout {
+  display: flex;
+  padding-top: var(--header-h);
+  min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed;
+  top: var(--header-h); left: 0;
+  width: var(--sidebar-w);
+  height: calc(100vh - var(--header-h));
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 20px 0 40px;
+  z-index: 100;
+}
+.sidebar-label {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-soft);
+  padding: 0 18px 10px;
+}
+.sidebar-back {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 18px 16px;
+  font-size: 12px; color: var(--text-soft);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.sidebar-back:hover { color: var(--amber); }
+.session-nav { list-style: none; }
+.session-nav li a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 18px;
+  text-decoration: none;
+  color: var(--text-mid);
+  font-size: 13.5px;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.session-nav li a:hover {
+  background: rgba(0,0,0,0.05);
+  color: var(--text);
+}
+.session-nav li.done a {
+  color: var(--success);
+  border-left-color: var(--success);
+}
+.nav-dot {
+  width: 10px; height: 10px; flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--text-soft);
+  transition: background 0.2s, border-color 0.2s;
+}
+li.done .nav-dot {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+/* ── Main ── */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  padding: 48px 40px 80px;
+  max-width: calc(var(--sidebar-w) + 760px);
+}
+.content-inner { max-width: 720px; }
+
+/* ── Intro card ── */
+.intro-card {
+  background: var(--amber-bg);
+  border: 1px solid #ECC88A;
+  border-left: 4px solid var(--amber-bdr);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 48px;
+}
+.intro-card p { color: var(--text-mid); font-size: 14px; margin-top: 6px; }
+.intro-card strong { color: var(--text); }
+
+/* ── Session ── */
+.session { padding-bottom: 72px; }
+.session + .session {
+  border-top: 2px solid var(--border);
+  padding-top: 64px;
+}
+.session-label {
+  display: inline-block;
+  font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--amber);
+  margin-bottom: 8px;
+}
+.session h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 30px; font-weight: normal;
+  color: var(--text); line-height: 1.25;
+  margin-bottom: 8px;
+}
+.session-theme {
+  font-size: 15px; color: var(--text-mid);
+  font-style: italic;
+  margin-bottom: 32px;
+}
+
+/* ── Warm-up card ── */
+.warmup {
+  background: var(--amber-bg);
+  border: 1px solid #ECC88A;
+  border-left: 4px solid var(--amber-bdr);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 36px;
+}
+.warmup-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--amber);
+  margin-bottom: 10px;
+}
+.warmup-tag::before { content: '✦'; font-size: 10px; }
+.warmup h3 {
+  font-size: 16px; font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.warmup p { color: var(--text-mid); margin-bottom: 10px; }
+.warmup p:last-child { margin-bottom: 0; }
+.warmup-note {
+  font-size: 13.5px; color: var(--text-mid);
+  font-style: italic;
+}
+
+/* ── Chunks ── */
+.chunks { margin-bottom: 36px; }
+.chunk {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border);
+}
+.chunk:last-child { border-bottom: none; }
+.chunk-header {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 12px; flex-wrap: wrap;
+}
+.chunk-id {
+  font-family: 'Courier New', monospace;
+  font-size: 12px; font-weight: 700;
+  background: var(--amber);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.chunk-title {
+  font-weight: 600; font-size: 15.5px;
+  color: var(--text);
+}
+.chunk-time {
+  font-size: 12px; color: var(--text-soft);
+  margin-left: auto;
+}
+.chunk-body p { margin-bottom: 10px; color: var(--text-mid); }
+.chunk-body p:last-child { margin-bottom: 0; }
+.chunk-body strong { color: var(--text); }
+
+/* ── Observe callout ── */
+.observe {
+  background: var(--teal-bg);
+  border-left: 4px solid var(--teal-bdr);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 18px;
+  margin-top: 14px;
+}
+.observe-label {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--teal);
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: 6px;
+}
+.observe-label::before { content: '👁'; font-size: 12px; }
+.observe p {
+  font-size: 14px; color: #1A4A38;
+  margin: 0;
+}
+
+/* ── Code blocks ── */
+pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 14px 0;
+  border: 1px solid #3A2E24;
+}
+code { font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace; }
+p code, li code {
+  background: var(--bg-card);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+  color: #8B3A10;
+  border: 1px solid var(--border);
+}
+
+/* ── Project card ── */
+.project-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 32px;
+}
+.project-tag {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-soft);
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: 8px;
+}
+.project-tag::before { content: '▶'; font-size: 9px; }
+.project-card h4 {
+  font-size: 15px; font-weight: 600;
+  color: var(--text); margin-bottom: 8px;
+}
+.project-card p { color: var(--text-mid); font-size: 14px; }
+.project-card p + p { margin-top: 6px; }
+.no-project {
+  font-style: italic; color: var(--text-soft);
+  font-size: 14px; margin-bottom: 32px;
+  padding-left: 4px;
+}
+
+/* ── Verify + Mark complete ── */
+.session-footer { margin-top: 8px; }
+.verify-block {
+  display: none;
+  background: var(--blue-bg);
+  border: 1px solid var(--blue-bdr);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+}
+.verify-block.open { display: block; }
+.verify-title {
+  font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: #3060A0;
+  margin-bottom: 8px;
+}
+.verify-desc { font-size: 13.5px; color: var(--text-mid); margin-bottom: 10px; }
+.verify-prompt-box {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  word-break: break-all;
+}
+.copy-btn {
+  background: none;
+  border: 1px solid var(--blue-bdr);
+  border-radius: 5px;
+  color: #3060A0;
+  font-size: 12px; font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.copy-btn:hover { background: rgba(96,144,224,0.12); }
+.copy-btn.copied { color: var(--success); border-color: var(--success); }
+.verify-btn {
+  background: none;
+  border: 2px solid var(--amber);
+  border-radius: var(--radius);
+  color: var(--amber);
+  padding: 10px 20px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 10px;
+  transition: background 0.15s, color 0.15s;
+}
+.verify-btn:hover { background: var(--amber-bg); }
+.complete-btn {
+  background: var(--amber);
+  color: #fff;
+  border: none; border-radius: var(--radius);
+  padding: 12px 24px;
+  font-size: 14.5px; font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  width: 100%;
+}
+.complete-btn:hover { background: #A85C18; }
+.complete-btn:active { transform: scale(0.99); }
+.complete-msg {
+  display: none;
+  background: var(--success-bg);
+  border: 1px solid #7FC8A0;
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  color: var(--success);
+  font-size: 14px; font-weight: 500;
+  line-height: 1.5;
+}
+.complete-msg::before {
+  content: '✓ ';
+  font-weight: 700;
+}
+
+/* ── Learner modal ── */
+.learner-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500;
+}
+.learner-modal.hidden { display: none; }
+.learner-modal-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 36px 40px;
+  max-width: 400px; width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.learner-modal-box h2 {
+  font-family: Georgia, serif;
+  font-size: 24px; font-weight: normal;
+  margin-bottom: 10px;
+}
+.learner-modal-box p { color: var(--text-mid); font-size: 14px; margin-bottom: 20px; }
+.learner-input {
+  width: 100%; padding: 10px 14px;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card); color: var(--text);
+  margin-bottom: 12px; outline: none;
+}
+.learner-input:focus { border-color: var(--amber); }
+.learner-start-btn {
+  width: 100%; background: var(--amber); color: #fff;
+  border: none; border-radius: var(--radius);
+  padding: 11px 20px;
+  font-size: 14.5px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.learner-start-btn:hover { background: #A85C18; }
+.learner-name-wrap { display: flex; align-items: center; gap: 8px; }
+.learner-name-label { font-size: 13px; color: var(--amber); font-weight: 500; }
+.learner-switch-btn {
+  background: none; border: none;
+  color: var(--text-soft); font-size: 12px;
+  cursor: pointer; text-decoration: underline; padding: 0;
+}
+.learner-switch-btn:hover { color: var(--amber); }
+.modal-step { display: none; }
+.modal-step.active { display: block; }
+.modal-cancel-btn {
+  background: none; border: none;
+  color: var(--text-soft); font-size: 13px;
+  cursor: pointer; width: 100%;
+  margin-top: 8px; padding: 4px;
+}
+
+/* ── Footer ── */
+.site-footer {
+  margin-left: var(--sidebar-w);
+  text-align: center;
+  padding: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: 13px;
+}
+.reset-btn {
+  background: none; border: none;
+  color: var(--text-soft); cursor: pointer;
+  text-decoration: underline; font-size: 13px;
+}
+.reset-btn:hover { color: var(--text-mid); }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .hamburger { display: block; }
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 150;
+  }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .main-content { margin-left: 0; padding: 24px 20px 60px; }
+  .site-footer { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- Full setup modal (new learners — redirects to index.html first) -->
+<div id="learner-modal" class="learner-modal hidden">
+  <div class="learner-modal-box">
+    <div class="modal-step active" id="modal-step-1">
+      <h2>Who's learning?</h2>
+      <p>Enter your name or handle. If you're new, <a href="index.html" style="color:var(--amber)">start with Part 1</a> first — it has the full setup flow.</p>
+      <input type="text" id="learner-input" class="learner-input" placeholder="your-name" maxlength="40"
+             onkeydown="if(event.key==='Enter') saveLearner()" />
+      <button class="learner-start-btn" onclick="saveLearner()">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Switch modal -->
+<div id="switch-modal" class="learner-modal hidden">
+  <div class="learner-modal-box" style="max-width:320px">
+    <h2 style="margin-bottom:16px;font-size:20px">Switch learner</h2>
+    <input type="text" id="switch-input" class="learner-input" placeholder="your-name" maxlength="40"
+           onkeydown="if(event.key==='Enter') applySwitchLearner()" />
+    <button class="learner-start-btn" onclick="applySwitchLearner()">Switch →</button>
+    <button class="modal-cancel-btn" onclick="hideSwitchModal()">Cancel</button>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <span class="header-title">AI Agents from Scratch</span>
+      <span class="header-subtitle">· Advanced Topics</span>
+      <a href="index.html" class="header-nav-link">← Fundamentals</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="learner-name-wrap" id="learner-name-wrap">
+        <span class="learner-name-label" id="learner-name-label"></span>
+        <button class="learner-switch-btn" onclick="showLearnerModal()">switch</button>
+      </div>
+      <span class="header-progress" id="progress-count">0 of 4 sections complete</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <a href="index.html" class="sidebar-back">← Part 1: Fundamentals</a>
+  <div class="sidebar-label">Advanced Topics</div>
+  <ul class="session-nav">
+    <li id="nav-a"><a href="#section-a"><span class="nav-dot" id="dot-a"></span>A. Prompt Caching</a></li>
+    <li id="nav-b"><a href="#section-b"><span class="nav-dot" id="dot-b"></span>B. Advanced Patterns</a></li>
+    <li id="nav-c"><a href="#section-c"><span class="nav-dot" id="dot-c"></span>C. Subagents vs Skills</a></li>
+    <li id="nav-d"><a href="#section-d"><span class="nav-dot" id="dot-d"></span>D. Plugins &amp; MCP</a></li>
+  </ul>
+</nav>
+
+<!-- Main -->
+<main class="main-content">
+<div class="content-inner">
+
+<div class="intro-card">
+  <strong>Prerequisites</strong>
+  <p>Complete all 7 sessions in <a href="index.html" style="color:var(--amber)">Part 1: Fundamentals</a> before starting here. These sections build directly on Session 4 (patterns), Session 5 (RAG), and Session 6 (production basics).</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ SECTION A -->
+<section class="session" id="section-a">
+  <span class="session-label">Section A · ~2 hours</span>
+  <h2>Prompt Caching</h2>
+  <p class="session-theme">Session 6 showed you the basics. Now measure and maximize it.</p>
+
+  <div class="warmup">
+    <div class="warmup-tag">Quick win · 5 min</div>
+    <h3>Establish your baseline</h3>
+    <p>In <code>caching.py</code>, the warm-up is already written: it makes 3 calls with a large system prompt and prints <code>cache_creation_input_tokens</code> and <code>cache_read_input_tokens</code> for each. Run it:</p>
+    <pre><code>python caching.py</code></pre>
+    <p class="warmup-note">Run 1 creates the cache. Runs 2 and 3 read from it — much cheaper. Everything in this section is about maximizing how often you get run 2's numbers instead of run 1's.</p>
+  </div>
+
+  <div class="chunks">
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">A1</span>
+        <span class="chunk-title">Caching large documents</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>System prompts aren't the only thing worth caching. Large context documents — reference docs, codebases, knowledge bases — can be cached too. The rule: everything <em>before</em> <code>cache_control</code> in token order gets cached.</p>
+        <p><strong>Task:</strong> In Section A1 of <code>caching.py</code>, make 2 calls that include <code>REFERENCE_DOC</code> in the user messages with <code>cache_control</code> on the document block. Change only the question between calls. Measure how many tokens are cached vs regular on each run.</p>
+<pre><code>messages=[{
+    "role": "user",
+    "content": [
+        {"type": "text", "text": REFERENCE_DOC,
+         "cache_control": {"type": "ephemeral"}},
+        {"type": "text", "text": "What is the cache TTL?"}
+    ]
+}]</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>On call 2, what percentage of input tokens came from the cache? What's the minimum document size where caching breaks even (write cost ≈ read savings)? The API docs say cache writes cost 1.25× regular input tokens.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">A2</span>
+        <span class="chunk-title">Cache placement</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p><code>cache_control</code> is a watermark: everything before it (in token order) is cached. If you put it on a tool definition, the system prompt and all preceding tools are cached too.</p>
+        <p><strong>Task:</strong> Run two experiments from Section A2 of <code>caching.py</code>: (1) cache only the system prompt, (2) cache a tool definition. Compare which placement caches more tokens on a typical agent loop call.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>In an agent loop where the system prompt is 200 tokens and tool definitions are 300 tokens, which placement gives better cache utilization per API call? What's the right placement strategy for an agent that runs 20+ steps?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">A3</span>
+        <span class="chunk-title">Agent loop caching</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>In a multi-step loop, the system prompt and tool definitions are byte-for-byte identical on every iteration. Without caching, you pay for them on every call. With caching, after step 1 you only pay for the new messages.</p>
+        <p><strong>Task:</strong> In Section A3 of <code>caching.py</code>, run <code>run_agent_loop()</code> with <code>use_cache=False</code> and then with <code>use_cache=True</code>. Compare total input tokens and total cache-read tokens across all steps.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>After a 5-step loop, what % of total input tokens were served from cache? Now extrapolate to a 20-step loop. At what point does the cache payoff become significant?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-tag">Mini Project · push to GitHub</div>
+    <h4>Cache-profiled research agent</h4>
+    <p>Take your <code>session3.py</code> research agent. Add <code>cache_control</code> at the right breakpoint. Run it cold (first time), then re-run within 5 minutes. Log per-step: <code>regular_tokens</code>, <code>cache_creation_tokens</code>, <code>cache_read_tokens</code>.</p>
+    <p>Calculate: total cost reduction from caching (cache reads cost ~10% of normal input price). What's the minimum number of agent steps where caching breaks even on the write cost?</p>
+  </div>
+
+  <div class="session-footer">
+    <button class="verify-btn" id="verify-btn-a" onclick="toggleVerify('a')">Verify with Claude →</button>
+    <div class="verify-block" id="verify-block-a">
+      <div class="verify-title">Verify with Claude Code</div>
+      <p class="verify-desc">In your Claude Code chat, paste this prompt:</p>
+      <div class="verify-prompt-box">Please verify my Section A (prompt caching) implementation at learners/<span class="learner-slug"></span>/caching.py</div>
+      <button class="copy-btn" id="copy-btn-a" onclick="copyVerify('a', 'caching.py')">Copy prompt</button>
+    </div>
+    <button class="complete-btn" id="complete-btn-a" onclick="markComplete('a')">Mark section complete ✓</button>
+    <div class="complete-msg" id="complete-msg-a">Cache hit rates are a real production metric now. You know how to measure and optimize them.</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════ SECTION B -->
+<section class="session" id="section-b">
+  <span class="session-label">Section B · ~2.5 hours</span>
+  <h2>Advanced Agentic Patterns</h2>
+  <p class="session-theme">Four patterns that go beyond ReAct, plan-execute, and multi-agent.</p>
+
+  <div class="warmup">
+    <div class="warmup-tag">Quick win · 10 min</div>
+    <h3>Add reflection in 3 lines</h3>
+    <p>Grab any response from a prior agent. Add a second call that reads the response and critiques it:</p>
+<pre><code>critique = client.messages.create(
+    model="claude-haiku-4-5-20251001", max_tokens=100,
+    messages=[{"role": "user", "content":
+        f"Critique this in one sentence — what's imprecise or missing?\n\n{first_answer}"}]
+).content[0].text
+print(critique)</code></pre>
+    <p class="warmup-note">That's reflection. One extra call that makes the output substantially better. The rest of this section builds on this idea systematically.</p>
+  </div>
+
+  <div class="chunks">
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">B1</span>
+        <span class="chunk-title">Reflection loop</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Draft → critique → revise, repeated until the model rates its own output as good or a max iteration count is hit. The stopping criterion prevents infinite loops.</p>
+        <p><strong>Task:</strong> Complete <code>reflection_loop()</code> in <code>patterns.py</code>. The critique phase must ask for a <code>good/needs-work</code> rating. If <code>good</code>, stop. If <code>needs-work</code>, send the critique to a revise call and update the draft.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>How often does the model say "good" on the first try vs after revisions? Run the same task 3 times. Is the number of revision cycles consistent? What does this tell you about when reflection is worth the extra token cost?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">B2</span>
+        <span class="chunk-title">Parallel fan-out</span>
+        <span class="chunk-time">25 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Fork work to N independent subagents running in parallel. Each has its own context. Merge their results with a final synthesis call. Use <code>threading.Thread</code> — it's simpler than asyncio for this pattern.</p>
+        <p><strong>Task:</strong> Complete the parallel fan-out in Section B2 of <code>patterns.py</code>. Three threads run simultaneously, one per framework (Django, FastAPI, Flask). After all threads complete, merge results with one synthesis call.</p>
+<pre><code>threads = []
+for key, subtask in subtasks.items():
+    t = threading.Thread(target=run_subagent, args=(subtask, results, key))
+    t.start()
+    threads.append(t)
+for t in threads:
+    t.join()  # wait for all</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Time the fan-out run vs running the same three subtasks sequentially. What's the speedup? Is it exactly 3× — or more/less? What determines the ceiling on parallelism here?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">B3</span>
+        <span class="chunk-title">Router pattern</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>A fast, cheap model classifies the user request and routes it to the right specialist. The router itself does no domain work — classification only.</p>
+        <p><strong>Task:</strong> Complete the specialist agents in Section B3 of <code>patterns.py</code> (<code>research_agent</code>, <code>code_agent</code>, <code>summarize_agent</code>). Then run <code>route()</code> on 8 diverse inputs and log which specialist was called.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Is there a category of input that gets misrouted consistently? What changes to the classifier system prompt fix it — and do those changes cause different misroutes elsewhere? This is the core challenge of router design.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">B4</span>
+        <span class="chunk-title">Human-in-the-loop</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>The agent has an <code>ask_human(question)</code> tool. When it calls it, your code calls <code>input()</code> and returns the human's typed response as a <code>tool_result</code>. The agent then continues with that answer in context.</p>
+        <p><strong>Task:</strong> Complete the HITL agent loop in Section B4 of <code>patterns.py</code>. Test it with the task: <em>"Write a summary of machine learning to ml_summary.txt, but ask the human how detailed it should be before writing."</em></p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Does the agent ask the question before writing — or does it write anyway and treat the tool call as optional? What system prompt phrasing reliably causes it to pause vs proceed? This gap between description and behavior is a fundamental challenge in agentic systems.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="no-project">No mini project — the four pattern implementations in <code>patterns.py</code> are your deliverable. Keep the outputs: the reflection loop logs, the parallel timing comparison, the router misroute examples, and the HITL transcript.</p>
+
+  <div class="session-footer">
+    <button class="verify-btn" id="verify-btn-b" onclick="toggleVerify('b')">Verify with Claude →</button>
+    <div class="verify-block" id="verify-block-b">
+      <div class="verify-title">Verify with Claude Code</div>
+      <p class="verify-desc">In your Claude Code chat, paste this prompt:</p>
+      <div class="verify-prompt-box">Please verify my Section B (advanced patterns) implementation at learners/<span class="learner-slug"></span>/patterns.py</div>
+      <button class="copy-btn" id="copy-btn-b" onclick="copyVerify('b', 'patterns.py')">Copy prompt</button>
+    </div>
+    <button class="complete-btn" id="complete-btn-b" onclick="markComplete('b')">Mark section complete ✓</button>
+    <div class="complete-msg" id="complete-msg-b">Four new patterns in your toolkit. Reflection, fan-out, routing, and human checkpoints — each solves a class of failure that the Session 4 patterns can't.</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════ SECTION C -->
+<section class="session" id="section-c">
+  <span class="session-label">Section C · ~1.5 hours</span>
+  <h2>Subagents vs Skills</h2>
+  <p class="session-theme">Learn when a function is enough, when a class is better, and when you actually need a Claude call.</p>
+
+  <div class="warmup">
+    <div class="warmup-tag">Quick win · 10 min</div>
+    <h3>Cost comparison in real numbers</h3>
+    <p>Run the warm-up in <code>skills.py</code>. It solves the same task two ways: a direct Python function (0 tokens, &lt;1ms) and a Claude subagent call (~50 tokens, ~1s). The numbers tell you the tradeoff immediately.</p>
+    <p class="warmup-note">Subagents cost tokens and latency on every single call. That's not a reason to never use them — it's a reason to only use them when you actually need language understanding.</p>
+  </div>
+
+  <div class="chunks">
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">C1</span>
+        <span class="chunk-title">The decision framework</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Four levels: <strong>tool</strong> (pure Python), <strong>skill module</strong> (reusable class wrapping tools), <strong>subagent</strong> (separate Claude call), <strong>independent agent</strong> (full autonomous loop).</p>
+        <p><strong>Task:</strong> Complete Section C1 in <code>skills.py</code> — categorize each capability in the list. For each, write a one-sentence justification. There are no trick answers — some genuinely sit on the boundary.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Which capabilities are genuinely ambiguous — where both tool and subagent could work? Write down the specific condition that tips you toward one or the other. That condition is your personal decision rule.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">C2</span>
+        <span class="chunk-title">Skill modules</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>A skill is a Python class that bundles related tools with their schemas and error handling. <code>SearchSkill</code> and <code>FileSkill</code> are already written in <code>skills.py</code>. Your job: implement <code>MemorySkill</code>.</p>
+        <p><strong>Task:</strong> Implement <code>MemorySkill</code> with a <code>tool_definition</code> property and <code>remember(fact)</code> / <code>recall_all()</code> methods. The skill stores facts in <code>self.facts</code> (a list). Test all three skills at the bottom of Section C2.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>What changes in your agent loop code when you switch from inline tool functions to skill classes? What's easier to test now — and what gets slightly more verbose? Is the tradeoff worth it at the scale of a session's codebase?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">C3</span>
+        <span class="chunk-title">Subagent specialization</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p><code>ResearcherAgent</code> (search + memory) and <code>WriterAgent</code> (file I/O only) are partially implemented. Giving each agent only the tools it needs keeps their context small and their behavior predictable.</p>
+        <p><strong>Task:</strong> Implement <code>MemorySkill</code> first (C2), then wire it into <code>ResearcherAgent</code>. Run a two-phase pipeline: researcher gathers facts, writer turns them into a document. Log context sizes at each step.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Compare context size: how many messages does the researcher accumulate vs the writer? If you'd used a single agent for both phases, how much larger would that context be? Does the split improve or hurt the final output quality?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-tag">Mini Project · push to GitHub</div>
+    <h4>Skill-based research agent</h4>
+    <p>Refactor <code>session3.py</code>: replace inline tool functions with <code>SearchSkill</code>, <code>FileSkill</code>, and <code>MemorySkill</code>. The agent loop itself should only know about skill interfaces, not implementation details.</p>
+    <p>Compare the before and after: how many lines did each change? Is the refactored version easier to swap out a skill in (e.g., replace <code>SearchSkill</code> with a different search provider)?</p>
+  </div>
+
+  <div class="session-footer">
+    <button class="verify-btn" id="verify-btn-c" onclick="toggleVerify('c')">Verify with Claude →</button>
+    <div class="verify-block" id="verify-block-c">
+      <div class="verify-title">Verify with Claude Code</div>
+      <p class="verify-desc">In your Claude Code chat, paste this prompt:</p>
+      <div class="verify-prompt-box">Please verify my Section C (subagents vs skills) implementation at learners/<span class="learner-slug"></span>/skills.py</div>
+      <button class="copy-btn" id="copy-btn-c" onclick="copyVerify('c', 'skills.py')">Copy prompt</button>
+    </div>
+    <button class="complete-btn" id="complete-btn-c" onclick="markComplete('c')">Mark section complete ✓</button>
+    <div class="complete-msg" id="complete-msg-c">You have a decision rule now — not a vague preference. Tool, skill, subagent, or agent: you know what question to ask.</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════ SECTION D -->
+<section class="session" id="section-d">
+  <span class="session-label">Section D · ~2 hours</span>
+  <h2>Plugins &amp; MCP</h2>
+  <p class="session-theme">Decouple your tools from your agent code with the Model Context Protocol.</p>
+
+  <div class="warmup">
+    <div class="warmup-tag">Quick win · 10 min</div>
+    <h3>Hello-world MCP server</h3>
+    <p>Install FastMCP: <code>pip install fastmcp</code>. Then run the test mode:</p>
+<pre><code>python mcp.py --test</code></pre>
+    <p>You should see the <code>hello</code> tool, <code>write_file</code>, and <code>read_file</code> respond immediately — the server is running locally. The warm-up is pre-written. Your job from D1 onward is to extend it.</p>
+    <p class="warmup-note">Notice: the tools look identical to Session 2's tool definitions. MCP just standardizes how they're discovered and called — the functions themselves don't change.</p>
+  </div>
+
+  <div class="chunks">
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">D1</span>
+        <span class="chunk-title">Tools via MCP</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Tools in MCP are just decorated Python functions. <code>@mcp.tool()</code> exposes them in the protocol's JSON-RPC interface. Clients discover them automatically via a <code>tools/list</code> call.</p>
+        <p><strong>Task:</strong> Add a <code>word_count(text: str) -&gt; str</code> tool to <code>mcp.py</code> using <code>@mcp.tool()</code>. Run <code>python mcp.py --test</code> and confirm it works. Then connect the server to Claude Code as a local MCP server and call it from there.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>In Claude Code's tool list, how does your MCP tool's description and schema appear compared to how you defined it in Python? Is there anything that got lost or changed in translation — or is it exactly what you wrote?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">D2</span>
+        <span class="chunk-title">Resources</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Resources are read-only endpoints — think of them as URLs the model can fetch. Your server already exposes the Acme KB chunks as resources. Add one more.</p>
+        <p><strong>Task:</strong> Add a <code>logs://agent/latest</code> resource to <code>mcp.py</code> that reads <code>agent.log</code> (from Session 3) if it exists, or returns <code>"No logs found."</code>. Test it with <code>python mcp.py --test</code>.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>When would you use a resource instead of a tool? The key difference: tools are actions (model calls them when it needs to do something), resources are data (model fetches context). Think of a case from Sessions 1–6 that would have been better modeled as a resource.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">D3</span>
+        <span class="chunk-title">Prompts</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Prompts in MCP are reusable templates with parameters. Any client can list them and invoke them — you get consistent prompt engineering shared across tools and agents.</p>
+        <p><strong>Task:</strong> Add a <code>compare_options(a: str, b: str)</code> prompt to <code>mcp.py</code> using <code>@mcp.prompt()</code>. It should generate a structured comparison prompt for any two options. Test it in Claude Code by calling it through the MCP interface.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>If you have 3 agents that all need to do structured comparisons, what changes with MCP prompts vs inline strings? Think about what happens when you want to improve the prompt — how many files change in each approach?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-tag">Mini Project · push to GitHub</div>
+    <h4>RAG knowledge base as MCP server</h4>
+    <p>Complete the <code>retrieve_context</code> tool in <code>mcp.py</code> — it should do cosine similarity search over <code>KB_CHUNKS</code> (reuse your implementation from <code>session5.py</code>). Also expose each chunk as a <code>knowledge://acme/{id}</code> resource.</p>
+    <p>Then wire the MCP server into your Session 3 research agent. Replace the directly-called <code>retrieve_context</code> function with a call to your MCP server's tool. Compare: does the agent's behavior change? Is the code cleaner or messier?</p>
+  </div>
+
+  <div class="session-footer">
+    <button class="verify-btn" id="verify-btn-d" onclick="toggleVerify('d')">Verify with Claude →</button>
+    <div class="verify-block" id="verify-block-d">
+      <div class="verify-title">Verify with Claude Code</div>
+      <p class="verify-desc">In your Claude Code chat, paste this prompt:</p>
+      <div class="verify-prompt-box">Please verify my Section D (MCP) implementation at learners/<span class="learner-slug"></span>/mcp.py</div>
+      <button class="copy-btn" id="copy-btn-d" onclick="copyVerify('d', 'mcp.py')">Copy prompt</button>
+    </div>
+    <button class="complete-btn" id="complete-btn-d" onclick="markComplete('d')">Mark section complete ✓</button>
+    <div class="complete-msg" id="complete-msg-d">Your tools are server-side now. Any client that speaks MCP — Claude Code, Claude Desktop, another agent — can discover and use them without touching your agent code.</div>
+  </div>
+</section>
+
+</div><!-- content-inner -->
+</main>
+</div><!-- layout -->
+
+<footer class="site-footer">
+  <a href="index.html" style="color:var(--text-soft);font-size:13px">← Back to Part 1: Fundamentals</a>
+  &nbsp;·&nbsp;
+  <button class="reset-btn" onclick="resetProgress()">Reset advanced progress</button>
+</footer>
+
+<script>
+const TOTAL = 4;
+const SECTIONS = ['a', 'b', 'c', 'd'];
+const LEARNER_KEY = 'ai-agents-learner';
+
+function getLearner() {
+  return localStorage.getItem(LEARNER_KEY) || '';
+}
+
+function KEY(s) {
+  return `${getLearner()}-adv-complete-${s}`;
+}
+
+// ── Learner identity ──────────────────────────────────────────────────────────
+
+// "switch" button → show switch modal
+function showLearnerModal() {
+  const modal = document.getElementById('switch-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    const input = document.getElementById('switch-input');
+    if (input) { input.value = getLearner(); input.focus(); input.select(); }
+  }
+}
+
+function hideSwitchModal() {
+  const modal = document.getElementById('switch-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function applySwitchLearner() {
+  const input = document.getElementById('switch-input');
+  const name = (input ? input.value.trim() : '').replace(/[^a-zA-Z0-9_\-]/g, '') || 'learner';
+  localStorage.setItem(LEARNER_KEY, name);
+  hideSwitchModal();
+  updateLearnerSlugs(name);
+  updateLearnerNameWrap(name);
+  loadProgress();
+}
+
+// First-load modal (no name yet) — simple name entry
+function hideLearnerModal() {
+  const modal = document.getElementById('learner-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function saveLearner() {
+  const input = document.getElementById('learner-input');
+  const name = (input ? input.value.trim() : '').replace(/[^a-zA-Z0-9_\-]/g, '') || 'learner';
+  localStorage.setItem(LEARNER_KEY, name);
+  hideLearnerModal();
+  updateLearnerSlugs(name);
+  updateLearnerNameWrap(name);
+  loadProgress();
+}
+
+function updateLearnerSlugs(name) {
+  document.querySelectorAll('.learner-slug').forEach(el => { el.textContent = name; });
+}
+
+function updateLearnerNameWrap(name) {
+  const label = document.getElementById('learner-name-label');
+  if (label) label.textContent = name;
+}
+
+// ── Progress ──────────────────────────────────────────────────────────────────
+
+function loadProgress() {
+  for (const s of SECTIONS) {
+    const btn  = document.getElementById(`complete-btn-${s}`);
+    const msg  = document.getElementById(`complete-msg-${s}`);
+    const vbtn = document.getElementById(`verify-btn-${s}`);
+    const dot  = document.getElementById(`dot-${s}`);
+    const nav  = document.getElementById(`nav-${s}`);
+    if (btn)  btn.style.display  = '';
+    if (msg)  msg.style.display  = 'none';
+    if (vbtn) vbtn.style.display = '';
+    if (dot)  dot.classList.remove('done');
+    if (nav)  nav.classList.remove('done');
+  }
+
+  let done = 0;
+  for (const s of SECTIONS) {
+    if (localStorage.getItem(KEY(s)) === '1') {
+      applyDone(s);
+      done++;
+    }
+  }
+  updateHeader(done);
+}
+
+function applyDone(s) {
+  const btn   = document.getElementById(`complete-btn-${s}`);
+  const msg   = document.getElementById(`complete-msg-${s}`);
+  const vbtn  = document.getElementById(`verify-btn-${s}`);
+  const vblock= document.getElementById(`verify-block-${s}`);
+  const dot   = document.getElementById(`dot-${s}`);
+  const nav   = document.getElementById(`nav-${s}`);
+  if (btn)   btn.style.display  = 'none';
+  if (vbtn)  vbtn.style.display = 'none';
+  if (vblock)vblock.classList.remove('open');
+  if (msg)   msg.style.display  = 'block';
+  if (dot)   dot.classList.add('done');
+  if (nav)   nav.classList.add('done');
+}
+
+function markComplete(s) {
+  localStorage.setItem(KEY(s), '1');
+  applyDone(s);
+  const done = SECTIONS.filter(x => localStorage.getItem(KEY(x)) === '1').length;
+  updateHeader(done);
+  const msg = document.getElementById(`complete-msg-${s}`);
+  if (msg) setTimeout(() => msg.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+function updateHeader(done) {
+  const el = document.getElementById('progress-count');
+  if (!el) return;
+  el.textContent = done === TOTAL
+    ? 'All 4 sections complete 🎉'
+    : `${done} of ${TOTAL} sections complete`;
+}
+
+function resetProgress() {
+  if (!confirm('Reset advanced topics progress? This cannot be undone.')) return;
+  for (const s of SECTIONS) localStorage.removeItem(KEY(s));
+  loadProgress();
+}
+
+// ── Verify panel ──────────────────────────────────────────────────────────────
+
+function toggleVerify(s) {
+  const block = document.getElementById(`verify-block-${s}`);
+  if (block) block.classList.toggle('open');
+}
+
+function copyVerify(s, filename) {
+  const learner = getLearner() || 'your-name';
+  const label = s.toUpperCase();
+  const prompt = `Please verify my Section ${label} implementation at learners/${learner}/${filename}`;
+  navigator.clipboard.writeText(prompt).then(() => flash(s)).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = prompt;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    flash(s);
+  });
+}
+
+function flash(s) {
+  const btn = document.getElementById(`copy-btn-${s}`);
+  if (btn) {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy prompt'; btn.classList.remove('copied'); }, 2000);
+  }
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('mobile-open');
+}
+
+document.querySelectorAll('.session-nav a').forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.innerWidth <= 768) {
+      document.getElementById('sidebar').classList.remove('mobile-open');
+    }
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  const learner = getLearner();
+  if (!learner) {
+    showLearnerModal();
+  } else {
+    updateLearnerSlugs(learner);
+    updateLearnerNameWrap(learner);
+    loadProgress();
+  }
+});
+</script>
+</body>
+</html>

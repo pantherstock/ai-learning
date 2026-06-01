@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agents from Scratch</title>
+<style>
+:root {
+  --bg:         #FDFAF5;
+  --bg-card:    #F8F2E8;
+  --bg-sidebar: #F0E8DB;
+  --text:       #2C1E10;
+  --text-mid:   #6A5540;
+  --text-soft:  #9A8570;
+  --amber:      #C47020;
+  --amber-bg:   #FFF7EB;
+  --amber-bdr:  #E8981A;
+  --teal:       #1A7A58;
+  --teal-bg:    #EAF7F1;
+  --teal-bdr:   #3AAD7A;
+  --blue-bg:    #EEF4FF;
+  --blue-bdr:   #6090E0;
+  --code-bg:    #1C1410;
+  --code-text:  #F2E4CC;
+  --code-dim:   #A09080;
+  --border:     #E0D4C0;
+  --success:    #1A6A40;
+  --success-bg: #E8F7EE;
+  --sidebar-w:  248px;
+  --header-h:   56px;
+  --radius:     8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+/* ── Header ── */
+.site-header {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: #1C1410;
+  display: flex; align-items: center;
+  padding: 0 20px;
+  z-index: 200;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.header-inner {
+  width: 100%; display: flex;
+  justify-content: space-between; align-items: center;
+  max-width: 1200px; margin: 0 auto;
+}
+.header-title {
+  font-size: 15px; font-weight: 600;
+  color: #F2E4CC; letter-spacing: 0.01em;
+}
+.header-progress {
+  font-size: 13px; color: var(--amber);
+  font-weight: 500;
+}
+.hamburger {
+  display: none;
+  background: none; border: none;
+  color: #F2E4CC; font-size: 20px;
+  cursor: pointer; padding: 4px 8px;
+  margin-right: 12px;
+}
+
+/* ── Layout ── */
+.layout {
+  display: flex;
+  padding-top: var(--header-h);
+  min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed;
+  top: var(--header-h); left: 0;
+  width: var(--sidebar-w);
+  height: calc(100vh - var(--header-h));
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 20px 0 40px;
+  z-index: 100;
+}
+.sidebar-label {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-soft);
+  padding: 0 18px 10px;
+}
+.session-nav { list-style: none; }
+.session-nav li a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 18px;
+  text-decoration: none;
+  color: var(--text-mid);
+  font-size: 13.5px;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.session-nav li a:hover {
+  background: rgba(0,0,0,0.05);
+  color: var(--text);
+}
+.session-nav li.done a {
+  color: var(--success);
+  border-left-color: var(--success);
+}
+.nav-dot {
+  width: 10px; height: 10px; flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--text-soft);
+  transition: background 0.2s, border-color 0.2s;
+}
+li.done .nav-dot {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+/* ── Main ── */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  padding: 48px 40px 80px;
+  max-width: calc(var(--sidebar-w) + 760px);
+}
+.content-inner { max-width: 720px; }
+
+/* ── Session ── */
+.session { padding-bottom: 72px; }
+.session + .session {
+  border-top: 2px solid var(--border);
+  padding-top: 64px;
+}
+
+.session-label {
+  display: inline-block;
+  font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--amber);
+  margin-bottom: 8px;
+}
+.session h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 30px; font-weight: normal;
+  color: var(--text); line-height: 1.25;
+  margin-bottom: 8px;
+}
+.session-theme {
+  font-size: 15px; color: var(--text-mid);
+  font-style: italic;
+  margin-bottom: 32px;
+}
+
+/* ── Warm-up card ── */
+.warmup {
+  background: var(--amber-bg);
+  border: 1px solid #ECC88A;
+  border-left: 4px solid var(--amber-bdr);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 36px;
+}
+.warmup-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--amber);
+  margin-bottom: 10px;
+}
+.warmup-tag::before { content: '✦'; font-size: 10px; }
+.warmup h3 {
+  font-size: 16px; font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.warmup p { color: var(--text-mid); margin-bottom: 10px; }
+.warmup p:last-child { margin-bottom: 0; }
+.warmup-note {
+  font-size: 13.5px; color: var(--text-mid);
+  font-style: italic;
+}
+
+/* ── Chunks ── */
+.chunks { margin-bottom: 36px; }
+.chunk {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border);
+}
+.chunk:last-child { border-bottom: none; }
+.chunk-header {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 12px; flex-wrap: wrap;
+}
+.chunk-id {
+  font-family: 'Courier New', monospace;
+  font-size: 12px; font-weight: 700;
+  background: var(--amber);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.chunk-title {
+  font-weight: 600; font-size: 15.5px;
+  color: var(--text);
+}
+.chunk-time {
+  font-size: 12px; color: var(--text-soft);
+  margin-left: auto;
+}
+.chunk-body p { margin-bottom: 10px; color: var(--text-mid); }
+.chunk-body p:last-child { margin-bottom: 0; }
+.chunk-body strong { color: var(--text); }
+
+/* ── Observe callout ── */
+.observe {
+  background: var(--teal-bg);
+  border-left: 4px solid var(--teal-bdr);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 18px;
+  margin-top: 14px;
+}
+.observe-label {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--teal);
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: 6px;
+}
+.observe-label::before { content: '👁'; font-size: 12px; }
+.observe p {
+  font-size: 14px; color: #1A4A38;
+  margin: 0;
+}
+
+/* ── Code blocks ── */
+pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 14px 0;
+  border: 1px solid #3A2E24;
+}
+code { font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace; }
+p code, li code {
+  background: var(--bg-card);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+  color: #8B3A10;
+  border: 1px solid var(--border);
+}
+
+/* ── Project card ── */
+.project-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 32px;
+}
+.project-tag {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-soft);
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: 8px;
+}
+.project-tag::before { content: '▶'; font-size: 9px; }
+.project-card h4 {
+  font-size: 15px; font-weight: 600;
+  color: var(--text); margin-bottom: 8px;
+}
+.project-card p { color: var(--text-mid); font-size: 14px; }
+.project-card p + p { margin-top: 6px; }
+.no-project {
+  font-style: italic; color: var(--text-soft);
+  font-size: 14px; margin-bottom: 32px;
+  padding-left: 4px;
+}
+
+/* ── Mark complete ── */
+.session-footer { margin-top: 8px; }
+.complete-btn {
+  background: var(--amber);
+  color: #fff;
+  border: none; border-radius: var(--radius);
+  padding: 12px 24px;
+  font-size: 14.5px; font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  width: 100%;
+}
+.complete-btn:hover { background: #A85C18; }
+.complete-btn:active { transform: scale(0.99); }
+.complete-msg {
+  display: none;
+  background: var(--success-bg);
+  border: 1px solid #7FC8A0;
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  color: var(--success);
+  font-size: 14px; font-weight: 500;
+  line-height: 1.5;
+}
+.complete-msg::before {
+  content: '✓ ';
+  font-weight: 700;
+}
+
+/* ── Footer ── */
+.site-footer {
+  margin-left: var(--sidebar-w);
+  text-align: center;
+  padding: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: 13px;
+}
+.reset-btn {
+  background: none; border: none;
+  color: var(--text-soft);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 13px;
+}
+.reset-btn:hover { color: var(--text-mid); }
+
+/* ── Learner modal ── */
+.learner-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500;
+}
+.learner-modal.hidden { display: none; }
+.learner-modal-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 36px 40px;
+  max-width: 400px; width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.learner-modal-box h2 {
+  font-family: Georgia, serif;
+  font-size: 24px; font-weight: normal;
+  margin-bottom: 10px;
+}
+.learner-modal-box p {
+  color: var(--text-mid); font-size: 14px;
+  margin-bottom: 20px;
+}
+.learner-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text);
+  margin-bottom: 12px;
+  outline: none;
+}
+.learner-input:focus { border-color: var(--amber); }
+.learner-start-btn {
+  width: 100%;
+  background: var(--amber);
+  color: #fff;
+  border: none; border-radius: var(--radius);
+  padding: 11px 20px;
+  font-size: 14.5px; font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.learner-start-btn:hover { background: #A85C18; }
+.learner-name-wrap {
+  display: flex; align-items: center; gap: 8px;
+}
+.learner-name-label {
+  font-size: 13px; color: var(--amber); font-weight: 500;
+}
+.learner-switch-btn {
+  background: none; border: none;
+  color: var(--text-soft);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.learner-switch-btn:hover { color: var(--amber); }
+.modal-step { display: none; }
+.modal-step.active { display: block; }
+.modal-input-group { margin-bottom: 16px; }
+.modal-input-label {
+  display: block;
+  font-size: 13px; font-weight: 500; color: var(--text);
+  margin-bottom: 6px;
+}
+.modal-hint {
+  font-size: 12px; color: var(--text-soft);
+  margin-top: 4px; line-height: 1.4;
+}
+.modal-hint a { color: var(--amber); }
+.setup-cmd-box {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+  font-size: 12px; line-height: 1.5;
+  word-break: break-all;
+  margin-bottom: 10px;
+  user-select: all;
+}
+.modal-cancel-btn {
+  background: none; border: none;
+  color: var(--text-soft); font-size: 13px;
+  cursor: pointer; width: 100%;
+  margin-top: 8px; padding: 4px;
+}
+.modal-cancel-btn:hover { color: var(--text-mid); }
+
+/* ── Verify block ── */
+.verify-block {
+  display: none;
+  background: var(--blue-bg);
+  border: 1px solid var(--blue-bdr);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+}
+.verify-block.open { display: block; }
+.verify-title {
+  font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: #3060A0;
+  margin-bottom: 8px;
+}
+.verify-desc {
+  font-size: 13.5px; color: var(--text-mid);
+  margin-bottom: 10px;
+}
+.verify-prompt-box {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  word-break: break-all;
+}
+.copy-btn {
+  background: none;
+  border: 1px solid var(--blue-bdr);
+  border-radius: 5px;
+  color: #3060A0;
+  font-size: 12px; font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.copy-btn:hover { background: rgba(96,144,224,0.12); }
+.copy-btn.copied { color: var(--success); border-color: var(--success); }
+.verify-btn {
+  background: none;
+  border: 2px solid var(--amber);
+  border-radius: var(--radius);
+  color: var(--amber);
+  padding: 10px 20px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 10px;
+  transition: background 0.15s, color 0.15s;
+}
+.verify-btn:hover { background: var(--amber-bg); }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .hamburger { display: block; }
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 150;
+  }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .main-content { margin-left: 0; padding: 24px 20px 60px; }
+  .site-footer { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- Full setup modal (new learners) -->
+<div id="learner-modal" class="learner-modal hidden">
+  <div class="learner-modal-box">
+
+    <!-- Step 1: name + API keys -->
+    <div class="modal-step active" id="modal-step-1">
+      <h2>Let's get you set up</h2>
+      <p>Takes about 2 minutes. You only do this once.</p>
+
+      <div class="modal-input-group">
+        <label class="modal-input-label">Your name or handle</label>
+        <input type="text" id="learner-input" class="learner-input" placeholder="e.g. simyi" maxlength="40"
+               onkeydown="if(event.key==='Enter') showSetupStep2()" />
+      </div>
+
+      <div class="modal-input-group">
+        <label class="modal-input-label">Anthropic API key <span style="color:var(--amber)">*</span></label>
+        <input type="password" id="anthropic-key-input" class="learner-input" placeholder="sk-ant-..." />
+        <div class="modal-hint">Free tier covers most sessions — <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>
+      </div>
+
+      <div class="modal-input-group">
+        <label class="modal-input-label">Brave Search API key <span style="color:var(--text-soft)">(optional, needed from Session 3)</span></label>
+        <input type="password" id="brave-key-input" class="learner-input" placeholder="BSA..." />
+        <div class="modal-hint">Free tier — <a href="https://brave.com/search/api/" target="_blank">brave.com/search/api</a></div>
+      </div>
+
+      <button class="learner-start-btn" onclick="showSetupStep2()">Generate setup command →</button>
+    </div>
+
+    <!-- Step 2: generated setup command -->
+    <div class="modal-step" id="modal-step-2">
+      <h2>Run this in your terminal</h2>
+      <p>From the <strong>ai-learning</strong> project folder:</p>
+      <div class="setup-cmd-box" id="setup-cmd-box"></div>
+      <button class="copy-btn" id="setup-copy-btn" onclick="copySetupCmd()" style="margin-bottom:16px">Copy command</button>
+      <p style="font-size:13px;color:var(--text-mid);margin-bottom:8px;">Then install dependencies (if not done):</p>
+      <div class="setup-cmd-box">pip install anthropic sentence-transformers requests</div>
+      <button class="learner-start-btn" onclick="finishSetup()" style="margin-top:8px">I've run the setup ✓</button>
+      <button class="modal-cancel-btn" onclick="backToStep1()">← Back</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Switch learner modal (returning learners) -->
+<div id="switch-modal" class="learner-modal hidden">
+  <div class="learner-modal-box" style="max-width:320px">
+    <h2 style="margin-bottom:16px;font-size:20px">Switch learner</h2>
+    <input type="text" id="switch-input" class="learner-input" placeholder="your-name" maxlength="40"
+           onkeydown="if(event.key==='Enter') applySwitchLearner()" />
+    <button class="learner-start-btn" onclick="applySwitchLearner()">Switch →</button>
+    <button class="modal-cancel-btn" onclick="hideSwitchModal()">Cancel</button>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div style="display:flex;align-items:center">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <span class="header-title">AI Agents from Scratch</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="learner-name-wrap" id="learner-name-wrap">
+        <span class="learner-name-label" id="learner-name-label"></span>
+        <button class="learner-switch-btn" onclick="showLearnerModal()">switch</button>
+      </div>
+      <span class="header-progress" id="progress-count">0 of 7 sessions complete</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-label">Sessions</div>
+  <ul class="session-nav">
+
+    <li id="nav-1"><a href="#session-1"><span class="nav-dot" id="dot-1"></span>1. First Contact</a></li>
+    <li id="nav-2"><a href="#session-2"><span class="nav-dot" id="dot-2"></span>2. Give the Model Hands</a></li>
+    <li id="nav-3"><a href="#session-3"><span class="nav-dot" id="dot-3"></span>3. Context is Your Budget</a></li>
+    <li id="nav-4"><a href="#session-4"><span class="nav-dot" id="dot-4"></span>4. Architecture Patterns</a></li>
+    <li id="nav-5"><a href="#session-5"><span class="nav-dot" id="dot-5"></span>5. Memory &amp; Retrieval</a></li>
+    <li id="nav-6"><a href="#session-6"><span class="nav-dot" id="dot-6"></span>6. Production Basics</a></li>
+    <li id="nav-7"><a href="#session-7"><span class="nav-dot" id="dot-7"></span>7. Capstone</a></li>
+  </ul>
+  <div style="padding: 16px 18px 0; border-top: 1px solid var(--border); margin-top: 12px;">
+    <a href="advanced.html" style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--amber);text-decoration:none;font-weight:600;">
+      Advanced Topics →
+    </a>
+    <p style="font-size:11px;color:var(--text-soft);margin-top:4px;line-height:1.4;">Caching · Patterns · Skills · MCP</p>
+  </div>
+</nav>
+
+<!-- Main -->
+<main class="main-content">
+<div class="content-inner">
+
+<!-- ══════════════════════════════════════════════════════ SESSION 1 -->
+<section class="session" id="session-1">
+  <span class="session-label">Session 1 · ~2.5 hours</span>
+  <h2>First Contact</h2>
+  <p class="session-theme">Learn the shape of the API by touching it directly.</p>
+
+  <div class="warmup">
+    <div class="warmup-tag">Quick win · 5 min</div>
+    <h3>Make your first API call</h3>
+    <p>Install the SDK and set your key: <code>pip install anthropic</code>, then <code>export ANTHROPIC_API_KEY="your-key"</code> (get one at console.anthropic.com, free tier works). Then run this:</p>
+<pre><code>import anthropic
+
+client = anthropic.Anthropic()  # reads key from env
+
+response = client.messages.create(
+    model="claude-haiku-4-5-20251001",
+    max_tokens=100,
+    messages=[{"role": "user", "content": "Say hello!"}]
+)
+print(response)</code></pre>
+    <p class="warmup-note">That's the whole API in one call. Everything else in this plan is built on top of what you just ran.</p>
+  </div>
+
+  <div class="chunks">
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">1A</span>
+        <span class="chunk-title">Reading the response</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>The response object contains more than just the reply text. Explore it.</p>
+        <p><strong>Task:</strong> Print <code>response.content</code>, <code>response.stop_reason</code>, and <code>response.usage</code> separately. Then write a helper <code>extract(r)</code> that returns a clean dict from any response:</p>
+<pre><code>def extract(r):
+    return {
+        "text": r.content[0].text,
+        "input_tokens": r.usage.input_tokens,
+        "output_tokens": r.usage.output_tokens,
+        "stop_reason": r.stop_reason
+    }
+
+print(extract(response))</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>What is <code>stop_reason</code> right now? Write down every value it could have — one of them will appear in Session 2 and change everything about how you read a response.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">1B</span>
+        <span class="chunk-title">Tokens aren't words</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Cost, context limits, and speed are all measured in tokens — not words or characters. Most people assume they're roughly the same. They're not.</p>
+        <p><strong>Task:</strong> Call the API with 5 inputs and log <code>usage.input_tokens</code> for each:</p>
+<pre><code>inputs = [
+    "Alex",
+    "def add(a, b):\n    return a + b",
+    '{"name": "Alice", "age": 30, "city": "NYC"}',
+    "antidisestablishmentarianism",
+    "🎉"
+]
+for text in inputs:
+    r = client.messages.create(
+        model="claude-haiku-4-5-20251001", max_tokens=1,
+        messages=[{"role": "user", "content": text}]
+    )
+    print(f"{repr(text[:35])}: {r.usage.input_tokens} tokens")</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Which input has the most tokens per character? Which has the fewest? Is "antidisestablishmentarianism" more or fewer tokens than the emoji? The answer is probably not what you expect.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">1C</span>
+        <span class="chunk-title">Statelessness — break it</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Every API call is fully independent. The model has no memory between calls. You're about to feel this directly.</p>
+        <p><strong>Task:</strong> Tell the model your name. Then, in a completely separate call, ask what your name is — but <em>don't</em> include the first exchange:</p>
+<pre><code># Call 1: tell it your name
+client.messages.create(
+    model="claude-haiku-4-5-20251001", max_tokens=50,
+    messages=[{"role": "user", "content": "My name is Jordan."}]
+)
+
+# Call 2: ask — but do NOT include call 1's messages
+r = client.messages.create(
+    model="claude-haiku-4-5-20251001", max_tokens=50,
+    messages=[{"role": "user", "content": "What's my name?"}]
+)
+print(r.content[0].text)</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>What does it say? This is not a bug — it's the API's fundamental design. Every single solution to "agent memory" is a direct workaround for exactly this behavior. Remember this moment.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">1D</span>
+        <span class="chunk-title">Building history</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>The fix is simple: send every previous turn on every new call. The full conversation lives in your code, not in the API.</p>
+        <p><strong>Task:</strong> Maintain a <code>messages</code> list. After each call, append both the user message and assistant reply. Pass the full list each time. Run a 5-turn conversation:</p>
+<pre><code>messages = []
+for i in range(5):
+    user_text = input("You: ")
+    messages.append({"role": "user", "content": user_text})
+    r = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=200, messages=messages
+    )
+    reply = r.content[0].text
+    messages.append({"role": "assistant", "content": reply})
+    print(f"Claude: {reply}")
+    print(f"  [input tokens: {r.usage.input_tokens}]")</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Print <code>len(messages)</code> and <code>r.usage.input_tokens</code> each turn. What's the relationship between them? What would input_tokens look like after 50 turns? After 200?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">1E</span>
+        <span class="chunk-title">System prompt as a dial</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>The system prompt is the highest-authority instruction in every API call. It shapes everything downstream.</p>
+        <p><strong>Task:</strong> Send the exact same user message — <em>"Explain what you are in one sentence."</em> — with three system prompts: none, <code>"You are a pirate."</code>, and <code>'You are a terse CLI tool. Reply only with valid JSON: {"answer": "..."}'</code>.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Which system prompt produces the most <em>consistently</em> formatted output across 3 separate runs? Why does output consistency matter more than output quality for an application?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-tag">Mini Project · push to GitHub</div>
+    <h4>Chatbot class with token logging</h4>
+    <p>Build a <code>Chatbot</code> class with: an <code>__init__</code> that creates the client and an empty <code>history</code> list; a <code>chat(message)</code> method that appends, calls the API, logs input tokens, and returns text; and a <code>token_log</code> list you can inspect after the conversation.</p>
+    <p>Run 10 turns. Print the token log at the end. Push to GitHub. This class is the starting point for every session that follows.</p>
+  </div>
+
+  <div class="session-footer">
+    <button class="verify-btn" id="verify-btn-1" onclick="toggleVerify(1)">Verify with Claude →</button>
+    <div class="verify-block" id="verify-block-1">
+      <div class="verify-title">Verify with Claude Code</div>
+      <p class="verify-desc">In your Claude Code chat, paste this prompt:</p>
+      <div class="verify-prompt-box">Please verify my Session 1 implementation at learners/<span class="learner-slug"></span>/session1.py</div>
+      <button class="copy-btn" id="copy-btn-1" onclick="copyVerify(1, 'session1.py')">Copy prompt</button>
+    </div>
+    <button class="complete-btn" id="complete-btn-1" onclick="markComplete(1)">Mark session complete ✓</button>
+    <div class="complete-msg" id="complete-msg-1">The API is just HTTP. That five-line script is the foundation everything else is built on.</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════ SESSION 2 -->
+<section class="session" id="session-2">
+  <span class="session-label">Session 2 · ~2.5 hours</span>
+  <h2>Give the Model Hands</h2>
+  <p class="session-theme">Turn a chatbot into something that acts.</p>
+
+  <div class="warmup">
+    <div class="warmup-tag">Quick win · 10 min</div>
+    <h3>Define a tool — see what comes back</h3>
+    <p>Add a <code>tools</code> parameter to your API call with one tool defined, and ask the model to use it:</p>
+<pre><code>tools = [{
+    "name": "get_weather",
+    "description": "Get the current weather for a city.",
+    "input_schema": {
+        "type": "object",
+        "properties": {"city": {"type": "string"}},
+        "required": ["city"]
+    }
+}]
+
+r = client.messages.create(
+    model="claude-haiku-4-5-20251001", max_tokens=200,
+    tools=tools,
+    messages=[{"role": "user", "content": "What's the weather in Tokyo?"}]
+)
+print("stop_reason:", r.stop_reason)
+print("content:", r.content)</code></pre>
+    <p class="warmup-note">Notice what's missing: an answer. The model didn't tell you the weather — it returned a request to call a function. It declared intent. That distinction is the whole session.</p>
+  </div>
+
+  <div class="chunks">
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">2A</span>
+        <span class="chunk-title">The tool_use block</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Parse what the model returned. The content list holds a <code>ToolUseBlock</code>, not a text block.</p>
+        <p><strong>Task:</strong> Extract and print <code>block.id</code>, <code>block.name</code>, and <code>block.input</code> from the warm-up response:</p>
+<pre><code>for block in r.content:
+    if block.type == "tool_use":
+        print("id:   ", block.id)
+        print("name: ", block.name)
+        print("input:", block.input)
+
+# The model told you exactly what to call and with what arguments.
+# It did not call anything.</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Run a prompt that <em>doesn't</em> need a tool ("What's 2 + 2?") and compare <code>stop_reason</code>. What are the two values you see, and what does each mean?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">2B</span>
+        <span class="chunk-title">Closing the loop</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>The model asked you to call a function. Now call it (fake the result) and report back. The cycle — tool_use → execute → tool_result — is the mechanical core of every agent ever built.</p>
+        <p><strong>Task:</strong> Append the assistant's response, then append a <code>tool_result</code> message, then call again:</p>
+<pre><code>messages = [{"role": "user", "content": "What's the weather in Tokyo?"}]
+messages.append({"role": "assistant", "content": r.content})
+
+tool_block = r.content[0]  # the ToolUseBlock from the warmup
+
+messages.append({
+    "role": "user",
+    "content": [{
+        "type": "tool_result",
+        "tool_use_id": tool_block.id,
+        "content": "Sunny, 24°C, light wind."
+    }]
+})
+
+r2 = client.messages.create(
+    model="claude-haiku-4-5-20251001", max_tokens=200,
+    tools=tools, messages=messages
+)
+print(r2.content[0].text)  # now it answers</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Change one character in <code>tool_use_id</code> and run it again. What error do you get? Why does the model need the ID to match — what would go wrong in a multi-tool response without it?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">2C</span>
+        <span class="chunk-title">The agent loop</span>
+        <span class="chunk-time">25 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Wrap the tool cycle in a while loop. Keep running until the model signals it's done.</p>
+        <p><strong>Task:</strong> Give the model a fake <code>search(query)</code> and a real <code>write_file(filename, content)</code>. Ask it to find something and save it. Build the loop:</p>
+<pre><code>def execute_tool(name, args):
+    if name == "search":
+        return f"Top result for '{args['query']}': [fake result]"
+    if name == "write_file":
+        with open(args["filename"], "w") as f:
+            f.write(args["content"])
+        return "File written successfully."
+
+step = 0
+while True:
+    r = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=500, tools=tools, messages=messages
+    )
+    step += 1
+    print(f"Step {step}: stop_reason={r.stop_reason}")
+
+    if r.stop_reason == "end_turn":
+        print(r.content[0].text)
+        break
+
+    messages.append({"role": "assistant", "content": r.content})
+    for block in r.content:
+        if block.type == "tool_use":
+            result = execute_tool(block.name, block.input)
+            messages.append({"role": "user", "content": [
+                {"type": "tool_result", "tool_use_id": block.id, "content": result}
+            ]})</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Give it a task that requires 3 tool calls. Log <code>stop_reason</code> on every iteration. Write down the exact sequence of values you see. This sequence is the heartbeat of every agent loop.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">2D</span>
+        <span class="chunk-title">Break it — always fail</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Replace your <code>search</code> function with one that always returns an error. Run 5+ steps. Log everything.</p>
+<pre><code>def search(query):
+    return "Error: permission denied. Access to external resources is blocked."
+
+# Run your agent loop and log each step's response text</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Does the model loop forever, give up gracefully, ask for help, or fabricate a plausible-sounding result? Write down exactly what you see — this failure mode will appear in production and you need to recognize it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">2E</span>
+        <span class="chunk-title">Safety valves</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Add hard limits so the loop can't run forever or cost you an unexpected amount.</p>
+<pre><code>MAX_STEPS = 10
+TOKEN_BUDGET = 30_000
+step = 0
+total_tokens = 0
+
+while step &lt; MAX_STEPS and total_tokens &lt; TOKEN_BUDGET:
+    r = client.messages.create(...)
+    total_tokens += r.usage.input_tokens + r.usage.output_tokens
+    step += 1
+    # ... rest of loop ...
+
+if step &gt;= MAX_STEPS:
+    print(f"Stopped: hit {MAX_STEPS} steps")
+elif total_tokens &gt;= TOKEN_BUDGET:
+    print(f"Stopped: budget exhausted ({total_tokens:,} tokens)")</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Design a task that should take many steps. Lower TOKEN_BUDGET to 5,000 and raise MAX_STEPS to 50. Which limit fires? Then reverse the values. What changes — and what does that tell you about the right defaults for different task types?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-tag">Mini Project · push to GitHub</div>
+    <h4>File agent with real tools</h4>
+    <p>Build an agent with two real tools: <code>read_file(path)</code> and <code>write_file(path, content)</code> using Python's built-in <code>open()</code>. Add max_steps and token budget. Give it this task: read a markdown file with bullet points, extract the action items, and write them to <code>actions.txt</code>.</p>
+    <p>Then pass a path that doesn't exist. What does the agent do when <code>read_file</code> raises <code>FileNotFoundError</code>? Handle it and log the result. Push to GitHub.</p>
+  </div>
+
+  <div class="session-footer">
+    <button class="verify-btn" id="verify-btn-2" onclick="toggleVerify(2)">Verify with Claude →</button>
+    <div class="verify-block" id="verify-block-2">
+      <div class="verify-title">Verify with Claude Code</div>
+      <p class="verify-desc">In your Claude Code chat, paste this prompt:</p>
+      <div class="verify-prompt-box">Please verify my Session 2 implementation at learners/<span class="learner-slug"></span>/session2.py</div>
+      <button class="copy-btn" id="copy-btn-2" onclick="copyVerify(2, 'session2.py')">Copy prompt</button>
+    </div>
+    <button class="complete-btn" id="complete-btn-2" onclick="markComplete(2)">Mark session complete ✓</button>
+    <div class="complete-msg" id="complete-msg-2">Your agent has hands now. tool_use → execute → tool_result — that loop is inside every agent ever shipped.</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════ SESSION 3 -->
+<section class="session" id="session-3">
+  <span class="session-label">Session 3 · ~2.5 hours</span>
+  <h2>Context is Your Budget</h2>
+  <p class="session-theme">Hit the limits, then build instincts to manage them.</p>
+
+  <div class="warmup">
+    <div class="warmup-tag">Quick win · 10 min</div>
+    <h3>Watch the tokens climb</h3>
+    <p>Take your agent from Session 2. Add one line at the start of each loop iteration before the API call:</p>
+<pre><code>print(f"Step {step}: {sum(len(str(m)) for m in messages)//4} approx tokens in messages")</code></pre>
+    <p>Run a 15-step task. Save the output. Watch the number grow every single step — even when the task isn't doing anything new. That's your context window filling up. Everything in this session is a direct response to that problem.</p>
+  </div>
+
+  <div class="chunks">
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">3A</span>
+        <span class="chunk-title">Wire a real search tool</span>
+        <span class="chunk-time">25 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Sign up for Brave Search API (free tier, no credit card). Replace your fake search with a real one:</p>
+<pre><code>import requests
+
+BRAVE_KEY = "your-brave-key"
+
+def search(query: str) -&gt; str:
+    r = requests.get(
+        "https://api.search.brave.com/res/v1/web/search",
+        headers={"X-Subscription-Token": BRAVE_KEY},
+        params={"q": query, "count": 3}
+    )
+    results = r.json().get("web", {}).get("results", [])
+    return "\n".join(
+        f"- {x['title']}: {x['description']}" for x in results
+    )</code></pre>
+        <p>Ask your agent something that requires current knowledge — a recent event, a price, today's date.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Change your tool description from <em>"Search the web"</em> to <em>"Search the web for real-time information not available in your training data."</em> Does the model call the tool more or less frequently on the same task? What changed — and what does that tell you about how tool descriptions work?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">3B</span>
+        <span class="chunk-title">Rolling compression</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>When your message history gets too large, summarize the oldest turns and drop them. You trade precision for space.</p>
+<pre><code>def maybe_compress(messages, client, threshold=4000):
+    approx_tokens = sum(len(str(m)) for m in messages) // 4
+    if approx_tokens &lt; threshold:
+        return messages
+
+    to_compress = messages[:-4]   # summarize everything except last 2 turns
+    r = client.messages.create(
+        model="claude-haiku-4-5-20251001", max_tokens=300,
+        messages=[{"role": "user", "content":
+            f"Summarize this conversation history in 2-3 sentences, "
+            f"keeping key facts:\n\n{to_compress}"}]
+    )
+    summary = r.content[0].text
+    compressed = [{"role": "user", "content": f"[Earlier context]: {summary}"}]
+    print(f"Compressed {len(to_compress)} messages → 1 summary")
+    return compressed + messages[-4:]
+
+# Call at the start of each loop iteration:
+messages = maybe_compress(messages, client)</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Print the approximate token count before and after each compression event. What's the compression ratio? Run it on conversations with different content types — is the ratio consistent?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">3C</span>
+        <span class="chunk-title">The cost of forgetting</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>This is the tradeoff made concrete. Run a 20-step task with compression enabled. In step 5, note a specific fact the agent encountered — a number, a name, a URL. Let compression run. Then in step 18, ask the agent directly about that fact.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Does the agent recall the fact correctly, admit it doesn't know, or confabulate something plausible but wrong? There's no fix — this is a design decision you live with. Understanding which behavior you'll get in each situation is what makes you a better architect.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">3D</span>
+        <span class="chunk-title">Structured logging</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>When a 10-step loop fails on step 7, logs are the only way to understand why. Add them now, not later.</p>
+<pre><code>import json, time
+
+def log(f, event_type, **data):
+    f.write(json.dumps({"ts": time.time(), "type": event_type, **data}) + "\n")
+
+with open("agent.log", "w") as log_file:
+    # Inside your loop, after each tool call:
+    log(log_file, "tool_call",
+        step=step, tool=block.name,
+        args=block.input, result=result[:200],
+        tokens_in=r.usage.input_tokens)
+
+    # When compression fires:
+    log(log_file, "compression",
+        before_msgs=len_before, after_msgs=len_after)</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>After a run that produces an unexpected result, open <code>agent.log</code>. Can you reconstruct exactly what happened — every decision, every tool call, every token count — from the log alone? If not, what's missing?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-tag">Mini Project · push to GitHub</div>
+    <h4>Research agent with compression and logging</h4>
+    <p>Combine everything: Brave search, <code>write_file</code>, rolling compression at 4,000 tokens, <code>max_steps=15</code>, <code>token_budget=50_000</code>, and a structured JSON log file.</p>
+    <p>Task: <em>"Research the history of reinforcement learning and write a 300-word summary to research.md."</em> After it runs, read the log file. Where did it waste tokens? Where did compression fire, and what did it lose? Push to GitHub.</p>
+  </div>
+
+  <div class="session-footer">
+    <button class="verify-btn" id="verify-btn-3" onclick="toggleVerify(3)">Verify with Claude →</button>
+    <div class="verify-block" id="verify-block-3">
+      <div class="verify-title">Verify with Claude Code</div>
+      <p class="verify-desc">In your Claude Code chat, paste this prompt:</p>
+      <div class="verify-prompt-box">Please verify my Session 3 implementation at learners/<span class="learner-slug"></span>/session3.py</div>
+      <button class="copy-btn" id="copy-btn-3" onclick="copyVerify(3, 'session3.py')">Copy prompt</button>
+    </div>
+    <button class="complete-btn" id="complete-btn-3" onclick="markComplete(3)">Mark session complete ✓</button>
+    <div class="complete-msg" id="complete-msg-3">You've felt the budget shrink. Compression is how you make context last — and now you've seen exactly what it costs. Keep those logs.</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════ SESSION 4 -->
+<section class="session" id="session-4">
+  <span class="session-label">Session 4 · ~3 hours</span>
+  <h2>Architecture Patterns</h2>
+  <p class="session-theme">There are several ways to structure an agent. Each one wins in different situations.</p>
+
+  <div class="warmup">
+    <div class="warmup-tag">Quick win · 10 min</div>
+    <h3>Turn on Thought lines</h3>
+    <p>Add exactly one sentence to your system prompt:</p>
+<pre><code>system = """You are a research assistant.
+Before every tool call, write a line starting with 'Thought:' explaining what you're about to do and why."""</code></pre>
+    <p>Run any task from Session 3. Read the Thought lines out loud as they appear. Notice how the model's stated reasoning compares to the tool it actually picks next. This is the ReAct pattern — you just turned it on with one sentence.</p>
+  </div>
+
+  <div class="chunks">
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">4A</span>
+        <span class="chunk-title">ReAct — thinking before acting</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>ReAct stands for Reason + Act. The model reasons out loud before each action, which tends to produce better decisions — and gives you a trace to debug.</p>
+        <p><strong>Task:</strong> Build a proper ReAct agent. Enforce the <code>Thought:</code> format in your system prompt. Run a 5-step task with and without it. Log each tool choice and whether it was correct.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Find a <code>Thought:</code> line where the model's reasoning correctly identified what it needed — but then it called the wrong tool or used wrong arguments anyway. What gap exists between the stated reasoning and the actual action taken?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">4B</span>
+        <span class="chunk-title">Plan-and-execute — and break it</span>
+        <span class="chunk-time">25 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Two API calls instead of one loop: first produce a plan, then execute it. Good for well-defined tasks. Fragile when reality diverges from the plan.</p>
+<pre><code># Phase 1: plan only (no tools available)
+plan_r = client.messages.create(
+    model="claude-haiku-4-5-20251001", max_tokens=400,
+    system="Create a numbered step-by-step plan. Do not execute. Be specific.",
+    messages=[{"role": "user", "content": task}]
+)
+plan = plan_r.content[0].text
+print("Plan:\n", plan)
+
+# Phase 2: execute with tools, plan as context
+exec_system = f"Execute this plan step by step:\n\n{plan}"
+# ... run your agent loop with exec_system ...</code></pre>
+        <p><strong>Break it:</strong> Design a task where step 3 depends on information only available from step 2's result. For example: "Find the most popular Python web framework. Then look up its latest version. Then check if that version has any known CVEs."</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>When mid-execution reality diverges from the plan, does the executor adapt, skip ahead, or proceed blindly and produce a wrong result? Log the exact step where it diverges and what it decides to do.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">4C</span>
+        <span class="chunk-title">Multi-agent — orchestrator and sub-agent</span>
+        <span class="chunk-time">30 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>The orchestrator's only tool is <code>call_subagent(task)</code>. The sub-agent is your agent loop from Session 2. Each agent has its own independent context window — this is the key insight.</p>
+<pre><code>def call_subagent(task: str) -&gt; str:
+    """Run the agent loop on a subtask and return the final answer."""
+    sub_messages = [{"role": "user", "content": task}]
+    step = 0
+    while step &lt; 8:
+        r = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=500, tools=agent_tools, messages=sub_messages
+        )
+        step += 1
+        if r.stop_reason == "end_turn":
+            return r.content[0].text
+        # ... handle tool calls ...
+    return "Sub-agent reached step limit."
+
+orchestrator_tools = [{
+    "name": "call_subagent",
+    "description": "Delegate a specific, self-contained task to a sub-agent.",
+    "input_schema": {
+        "type": "object",
+        "properties": {"task": {"type": "string", "description": "The complete task for the sub-agent."}},
+        "required": ["task"]
+    }
+}]</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Log <code>len(messages)</code> for the orchestrator and for each sub-agent call separately. Why is the sub-agent's context always shorter? Why is that a feature rather than a limitation?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">4D</span>
+        <span class="chunk-title">Compare all three patterns</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Run the exact same task through all three patterns. Log steps taken, total tokens used, and your judgment of result quality.</p>
+        <p><strong>Task to use:</strong> <em>"Find 3 recent Python libraries for building REST APIs, compare their GitHub star counts, and write a brief recommendation to api-libraries.md."</em></p>
+<pre><code># For each pattern, log:
+results = {
+    "react":            {"steps": 0, "tokens": 0, "quality": ""},
+    "plan_and_execute": {"steps": 0, "tokens": 0, "quality": ""},
+    "multi_agent":      {"steps": 0, "tokens": 0, "quality": ""}
+}</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Which pattern produces the most <em>consistent</em> step count across 3 runs of the same task? Which produces the highest quality result? Are they the same pattern — or does that tell you something about the tradeoff between reliability and quality?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="no-project">No mini project this session — your comparison table and logs are the deliverable. Keep them.</p>
+
+  <div class="session-footer">
+    <button class="verify-btn" id="verify-btn-4" onclick="toggleVerify(4)">Verify with Claude →</button>
+    <div class="verify-block" id="verify-block-4">
+      <div class="verify-title">Verify with Claude Code</div>
+      <p class="verify-desc">In your Claude Code chat, paste this prompt:</p>
+      <div class="verify-prompt-box">Please verify my Session 4 implementation at learners/<span class="learner-slug"></span>/session4.py</div>
+      <button class="copy-btn" id="copy-btn-4" onclick="copyVerify(4, 'session4.py')">Copy prompt</button>
+    </div>
+    <button class="complete-btn" id="complete-btn-4" onclick="markComplete(4)">Mark session complete ✓</button>
+    <div class="complete-msg" id="complete-msg-4">No universal winner. You ran the comparison — now you have real intuition for when each pattern fits.</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════ SESSION 5 -->
+<section class="session" id="session-5">
+  <span class="session-label">Session 5 · ~2.5 hours</span>
+  <h2>Memory &amp; Retrieval</h2>
+  <p class="session-theme">Give your agent knowledge that doesn't fit in the context window.</p>
+
+  <div class="warmup">
+    <div class="warmup-tag">Quick win · 10 min</div>
+    <h3>Feel semantic similarity</h3>
+    <p>Install: <code>pip install sentence-transformers</code>. Then embed two sentences and compute their dot product:</p>
+<pre><code>from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer('all-MiniLM-L6-v2')  # downloads ~80MB once
+
+a = model.encode("The cat sat on the mat")
+b = model.encode("A feline rested on a rug")
+c = model.encode("The stock market crashed yesterday")
+
+dot_ab = sum(x * y for x, y in zip(a, b))
+dot_ac = sum(x * y for x, y in zip(a, c))
+
+print(f"Similar sentences dot product:   {dot_ab:.4f}")
+print(f"Unrelated sentences dot product: {dot_ac:.4f}")
+print(f"Vector dimensions: {len(a)}")</code></pre>
+    <p class="warmup-note">The difference between those two numbers is semantic similarity in action. Same idea, similar words, similar vector. Different topic, very different vector.</p>
+  </div>
+
+  <div class="chunks">
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">5A</span>
+        <span class="chunk-title">Cosine similarity from scratch</span>
+        <span class="chunk-time">30 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>The dot product alone isn't a reliable similarity score — longer vectors produce bigger dot products regardless of direction. Cosine similarity normalizes for vector magnitude.</p>
+        <p><strong>Task:</strong> Implement it yourself, no library:</p>
+<pre><code>def cosine_similarity(a, b):
+    dot   = sum(x * y for x, y in zip(a, b))
+    mag_a = sum(x**2 for x in a) ** 0.5
+    mag_b = sum(x**2 for x in b) ** 0.5
+    return dot / (mag_a * mag_b)  # always between -1 and 1
+
+# Store 5 text chunks and embed them
+chunks = [
+    "Acme Corp was founded in 2018 by Maria Chen and James Wu.",
+    "The company's main product is an AI-powered scheduling tool.",
+    "Acme raised $12M Series A in 2021 led by Sequoia.",
+    "The engineering team uses Python, Go, and React.",
+    "CEO Maria Chen previously worked at Google Brain."
+]
+embeddings = model.encode(chunks)  # shape: (5, 384)
+
+def find_nearest(query, chunks, embeddings):
+    q_emb = model.encode(query)
+    scores = [cosine_similarity(q_emb, e) for e in embeddings]
+    best = max(range(len(scores)), key=lambda i: scores[i])
+    return chunks[best], scores[best]
+
+result, score = find_nearest("Who started the company?", chunks, embeddings)
+print(f"Score: {score:.4f}")
+print(f"Match: {result}")</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Now search for <em>"What's the company's founding story?"</em> — does it return the same chunk? The words are completely different, but the meaning is the same. This is semantic search. Try to find a query that retrieves the wrong chunk, and understand why it matched.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">5B</span>
+        <span class="chunk-title">RAG as a tool</span>
+        <span class="chunk-time">25 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Wire your retrieval function into your agent as a callable tool. The agent decides when to use it.</p>
+<pre><code>KB_CHUNKS = [
+    "Acme Corp was founded in 2018 by Maria Chen and James Wu in Seattle.",
+    "The flagship product, ScheduleAI, is used by 500+ enterprise customers.",
+    "Acme raised $12M Series A in 2021 and $40M Series B in 2023.",
+    "The engineering team is 45 people, primarily Python and Go.",
+    "CEO Maria Chen was previously a research scientist at Google Brain.",
+    "CTO James Wu led infrastructure at Stripe before co-founding Acme.",
+    "ScheduleAI integrates with Google Calendar, Outlook, and Zoom.",
+    "The company is headquartered in Seattle with a London office."
+]
+KB_EMBEDDINGS = model.encode(KB_CHUNKS)
+
+def retrieve_context(query: str) -&gt; str:
+    q_emb = model.encode(query)
+    scores = [cosine_similarity(q_emb, e) for e in KB_EMBEDDINGS]
+    top2 = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:2]
+    return "\n".join(KB_CHUNKS[i] for i in top2)
+
+# Add this as a tool to your agent loop</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Ask something whose answer is clearly in the knowledge base. Now ask something not in it at all — something about a competitor or a topic the chunks don't cover. Does the agent say it doesn't know, search the web (if that tool is available), or make something up? What determined which behavior you got?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">5C</span>
+        <span class="chunk-title">Push the edges</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p><strong>Task:</strong> Run these three tests and log the retrieved chunk and similarity score for each:</p>
+        <p>1. Ask a question phrased very differently from how the answer is stored: <em>"How much money has Acme taken from investors?"</em></p>
+        <p>2. Ask something with no answer in the knowledge base: <em>"What is Acme's revenue?"</em></p>
+        <p>3. Ask something ambiguous that could match two chunks equally: <em>"Tell me about Acme's leadership."</em></p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>For test 3, which chunk wins? Read both the Maria Chen chunk and the James Wu chunk carefully. Why would the embeddings prefer one over the other for the word "leadership"? This reveals something subtle about how training data shapes similarity scores.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card">
+    <div class="project-tag">Mini Project · push to GitHub</div>
+    <h4>RAG wired into the research agent</h4>
+    <p>Add your <code>retrieve_context</code> tool to the research agent from Session 3. The agent now has two knowledge sources: web search (live, current) and the knowledge base (static, curated).</p>
+    <p>Run two tasks: one where the knowledge base and web search would return the same information; one where they'd return different or contradictory information. Which source does the agent prefer when both are available? Does the tool description influence that preference? Push to GitHub.</p>
+  </div>
+
+  <div class="session-footer">
+    <button class="verify-btn" id="verify-btn-5" onclick="toggleVerify(5)">Verify with Claude →</button>
+    <div class="verify-block" id="verify-block-5">
+      <div class="verify-title">Verify with Claude Code</div>
+      <p class="verify-desc">In your Claude Code chat, paste this prompt:</p>
+      <div class="verify-prompt-box">Please verify my Session 5 implementation at learners/<span class="learner-slug"></span>/session5.py</div>
+      <button class="copy-btn" id="copy-btn-5" onclick="copyVerify(5, 'session5.py')">Copy prompt</button>
+    </div>
+    <button class="complete-btn" id="complete-btn-5" onclick="markComplete(5)">Mark session complete ✓</button>
+    <div class="complete-msg" id="complete-msg-5">Semantic memory, wired in. Your agent can retrieve knowledge that doesn't fit in its context window — and you know exactly how the math works.</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════ SESSION 6 -->
+<section class="session" id="session-6">
+  <span class="session-label">Session 6 · ~2 hours</span>
+  <h2>Production Basics</h2>
+  <p class="session-theme">Make it real — reliability, cost, and responsiveness.</p>
+
+  <div class="warmup">
+    <div class="warmup-tag">Quick win · 10 min</div>
+    <h3>Watch it die</h3>
+    <p>Wrap your API call in a function that raises an error on the first attempt:</p>
+<pre><code>call_count = 0
+
+def fragile_api_call(**kwargs):
+    global call_count
+    call_count += 1
+    if call_count % 3 == 1:  # fail every 3rd call
+        raise anthropic.RateLimitError("rate_limit_error", response=None, body={})
+    return client.messages.create(**kwargs)
+
+# Replace your client.messages.create() with fragile_api_call()</code></pre>
+    <p class="warmup-note">Run your agent. It crashes on the first failed call with no recovery. That's your current production reliability. This session is the fix.</p>
+  </div>
+
+  <div class="chunks">
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">6A</span>
+        <span class="chunk-title">Retry with exponential backoff</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Transient errors (rate limits, timeouts, 5xx) are worth retrying. Permanent errors (bad API key, malformed request) are not. Know the difference.</p>
+<pre><code>import time
+
+def call_with_retry(fn, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return fn()
+        except anthropic.RateLimitError:
+            if attempt == max_retries - 1: raise
+            wait = 2 ** attempt   # 1s, 2s, 4s
+            print(f"Rate limited. Retrying in {wait}s...")
+            time.sleep(wait)
+        except anthropic.APIStatusError as e:
+            if e.status_code &gt;= 500:   # server error — transient
+                if attempt == max_retries - 1: raise
+                time.sleep(2 ** attempt)
+            else:
+                raise   # 4xx — client error, don't retry
+
+# Usage:
+response = call_with_retry(
+    lambda: client.messages.create(model="claude-haiku-4-5-20251001", ...)
+)</code></pre>
+        <p>Simulate failures using your <code>fragile_api_call</code> wrapper. Test at 10%, 30%, and 50% failure rates.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>At what simulated failure rate does your agent still succeed most of the time with 3 retries? At what rate does it become unreliable? What does this tell you about how much production error budget you actually have?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">6B</span>
+        <span class="chunk-title">Streaming</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Tokens arrive as they're generated. Total time is similar — perceived responsiveness is dramatically better.</p>
+<pre><code>with client.messages.stream(
+    model="claude-haiku-4-5-20251001",
+    max_tokens=500,
+    messages=messages
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+    print()  # newline at end
+    final = stream.get_final_message()
+    print(f"\n[tokens in: {final.usage.input_tokens}]")</code></pre>
+        <p>Run the same prompt with and without streaming, timing both with <code>time.time()</code>.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>In the stream, at what point can you tell the model is about to make a tool call — before the result arrives? Can you print <em>"🔧 Calling search tool..."</em> to the user the moment the intent is clear? What would you need to detect in the stream to do this?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">6C</span>
+        <span class="chunk-title">Prompt caching</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Your system prompt and tool definitions are byte-for-byte identical on every API call. You're paying full price for them every time. Caching cuts that cost to ~10%.</p>
+<pre><code>response = client.messages.create(
+    model="claude-haiku-4-5-20251001",
+    max_tokens=500,
+    system=[{
+        "type": "text",
+        "text": "Your system prompt here...",
+        "cache_control": {"type": "ephemeral"}
+    }],
+    messages=messages
+)
+
+# On the first call: cache_creation_input_tokens &gt; 0
+# On subsequent calls: cache_read_input_tokens &gt; 0
+print("Created:", response.usage.cache_creation_input_tokens)
+print("Read:   ", response.usage.cache_read_input_tokens)</code></pre>
+        <p>Run the same agent task twice. Compare token costs between run 1 and run 2.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>What percentage of your total input tokens are cache hits on the second run? Calculate the cost difference — cached tokens cost ~10× less than regular input tokens. What's the minimum system prompt length where caching starts to matter meaningfully?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">6D</span>
+        <span class="chunk-title">Structured output and self-correction</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Ask the model to always end with a JSON summary. If it doesn't, send a correction and let it retry.</p>
+<pre><code>import json
+
+REQUIRED_SCHEMA = '{"result": "...", "steps_taken": N, "confidence": "high|medium|low"}'
+
+def get_structured_result(messages, client):
+    system = f"Always end your final response with this JSON on its own line: {REQUIRED_SCHEMA}"
+    r = client.messages.create(
+        model="claude-haiku-4-5-20251001", max_tokens=600,
+        system=system, messages=messages
+    )
+    text = r.content[0].text
+    try:
+        json_start = text.rfind("{")
+        return json.loads(text[json_start:])
+    except (json.JSONDecodeError, ValueError):
+        # Ask for correction
+        messages.append({"role": "assistant", "content": text})
+        messages.append({"role": "user", "content":
+            "Your response is missing the required JSON summary. Please add it now."})
+        r2 = client.messages.create(
+            model="claude-haiku-4-5-20251001", max_tokens=200,
+            messages=messages
+        )
+        return json.loads(r2.content[0].text)</code></pre>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Run 5 trials without explicit format instructions, then 5 trials with them. How often does the model include the JSON correctly in each case? Does the self-correction retry always succeed, or can it fail too?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="no-project">No mini project this session — your before/after measurements are the deliverable. Log the numbers: retry recovery rate, cache hit percentage, malformed output rate before and after format instructions.</p>
+
+  <div class="session-footer">
+    <button class="verify-btn" id="verify-btn-6" onclick="toggleVerify(6)">Verify with Claude →</button>
+    <div class="verify-block" id="verify-block-6">
+      <div class="verify-title">Verify with Claude Code</div>
+      <p class="verify-desc">In your Claude Code chat, paste this prompt:</p>
+      <div class="verify-prompt-box">Please verify my Session 6 implementation at learners/<span class="learner-slug"></span>/session6.py</div>
+      <button class="copy-btn" id="copy-btn-6" onclick="copyVerify(6, 'session6.py')">Copy prompt</button>
+    </div>
+    <button class="complete-btn" id="complete-btn-6" onclick="markComplete(6)">Mark session complete ✓</button>
+    <div class="complete-msg" id="complete-msg-6">Retry, stream, cache, validate. Your agent handles real production conditions now. The numbers you measured are your baseline.</div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════ SESSION 7 -->
+<section class="session" id="session-7">
+  <span class="session-label">Session 7 · ~3–4 hours</span>
+  <h2>Capstone</h2>
+  <p class="session-theme">Design and ship something real.</p>
+
+  <div class="warmup">
+    <div class="warmup-tag">Quick win · 10 min</div>
+    <h3>Design before you code</h3>
+    <p>Before opening your editor, open a text file (or grab paper). Write answers to these five questions — actual answers, not "TBD":</p>
+    <p>1. Which architecture pattern from Session 4?<br>
+    2. What external tools does it need?<br>
+    3. Where does memory live — in-context, rolling summary, or vector store?<br>
+    4. What are the three most likely failure modes?<br>
+    5. What gets logged, and what would you look at first in a failed run?</p>
+    <p class="warmup-note">If you can't answer all five in 10 minutes, the design isn't ready. That's not a failure — that's the warm-up doing its job.</p>
+  </div>
+
+  <div class="chunks">
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">7A</span>
+        <span class="chunk-title">Written design</span>
+        <span class="chunk-time">20 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Save your design to <code>DESIGN.md</code> before you write any code. It doesn't need to be long — it needs to be decided.</p>
+        <p>Cover: which pattern and why you chose it over the others; which tools are needed and whether any are stateful; where memory lives and at what token threshold compression fires; the max_steps and token budget limits; what events get logged.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>What was the hardest design decision? Write down the tradeoff explicitly — what you chose and what you gave up. That tradeoff is a learning outcome, not just an implementation detail.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">7B</span>
+        <span class="chunk-title">Build it</span>
+        <span class="chunk-time">60 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Implement your design. Required checklist:</p>
+        <p>☐ At least one real external tool (not faked)<br>
+        ☐ Context compression at a defined threshold<br>
+        ☐ max_steps and token budget enforced<br>
+        ☐ Structured JSON log file<br>
+        ☐ Retry with exponential backoff on API calls</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>You will hit at least one decision mid-build that wasn't in your design. Write it down when it happens. Those surprises — the things the design didn't anticipate — are the real output of this chunk.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">7C</span>
+        <span class="chunk-title">Document it</span>
+        <span class="chunk-time">25 min</span>
+      </div>
+      <div class="chunk-body">
+        <p>Write two documents: a one-page <code>ARCHITECTURE.md</code> and a <code>README.md</code> with setup instructions.</p>
+        <p>The architecture doc covers: which pattern and why, where memory lives, how compression works, the failure modes you designed for, and one thing you'd do differently if rebuilding from scratch.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Answer this in 30 seconds: if someone asked you to add a fact-checking sub-agent to your system — where would it plug in? If you can answer immediately without re-reading your code, you understand your own architecture.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chunk">
+      <div class="chunk-header">
+        <span class="chunk-id">7D</span>
+        <span class="chunk-title">Ship it</span>
+        <span class="chunk-time">15 min</span>
+      </div>
+      <div class="chunk-body">
+        <p><strong>Task:</strong> Push to GitHub. Tag the release <code>v1.0</code>:</p>
+<pre><code>git add .
+git commit -m "capstone: v1.0"
+git tag v1.0
+git push origin main --tags</code></pre>
+        <p>Write a short retrospective — 4 sentences or so: what clicked, what surprised you, what you'd do differently, and one thing you want to learn next.</p>
+        <div class="observe">
+          <div class="observe-label">Observe this</div>
+          <p>Look at your Session 1 chatbot and your Session 7 agent side by side. List every component you added between the two. That list — history management, tool loop, max_steps, token budget, compression, logging, retry logic, RAG, architecture pattern, documentation — is what separates a chatbot from an agent. You built all of it.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="session-footer">
+    <button class="verify-btn" id="verify-btn-7" onclick="toggleVerify(7)">Verify with Claude →</button>
+    <div class="verify-block" id="verify-block-7">
+      <div class="verify-title">Verify with Claude Code</div>
+      <p class="verify-desc">In your Claude Code chat, paste this prompt:</p>
+      <div class="verify-prompt-box">Please verify my Session 7 implementation at learners/<span class="learner-slug"></span>/session7.py</div>
+      <button class="copy-btn" id="copy-btn-7" onclick="copyVerify(7, 'session7.py')">Copy prompt</button>
+    </div>
+    <button class="complete-btn" id="complete-btn-7" onclick="markComplete(7)">Mark session complete ✓</button>
+    <div class="complete-msg" id="complete-msg-7">Shipped. v1.0, tagged, documented. That's the full arc — from a five-line hello world to a real agent you designed yourself.</div>
+  </div>
+</section>
+
+</div><!-- content-inner -->
+</main>
+</div><!-- layout -->
+
+<footer class="site-footer">
+  <button class="reset-btn" onclick="resetProgress()">Reset progress</button>
+</footer>
+
+<script>
+const TOTAL = 7;
+const LEARNER_KEY = 'ai-agents-learner';
+
+function getLearner() {
+  return localStorage.getItem(LEARNER_KEY) || '';
+}
+function KEY(n) {
+  return `${getLearner()}-ai-agents-complete-${n}`;
+}
+
+// ── Setup modal (new learners) ────────────────────────────────────────────────
+
+function showSetupStep2() {
+  const nameRaw = (document.getElementById('learner-input').value || '').trim();
+  const name = nameRaw.replace(/[^a-zA-Z0-9_\-]/g, '');
+  const anthropicKey = (document.getElementById('anthropic-key-input').value || '').trim();
+  const braveKey = (document.getElementById('brave-key-input').value || '').trim();
+
+  if (!name) { alert('Please enter your name.'); return; }
+  if (!anthropicKey) { alert('Please enter your Anthropic API key.'); return; }
+
+  document.getElementById('learner-modal').dataset.pendingName = name;
+
+  // Build a cross-platform Python one-liner that creates the folder + .env
+  const envContent = 'ANTHROPIC_API_KEY=' + anthropicKey
+    + (braveKey ? '\\nBRAVE_SEARCH_API_KEY=' + braveKey : '');
+  const cmd = `python -c "import shutil; shutil.copytree('learners/_template','learners/${name}'); open('learners/${name}/.env','w').write('${envContent}')"`;
+
+  document.getElementById('setup-cmd-box').textContent = cmd;
+  document.getElementById('modal-step-1').classList.remove('active');
+  document.getElementById('modal-step-2').classList.add('active');
+}
+
+function backToStep1() {
+  document.getElementById('modal-step-2').classList.remove('active');
+  document.getElementById('modal-step-1').classList.add('active');
+}
+
+function copySetupCmd() {
+  const text = document.getElementById('setup-cmd-box').textContent;
+  const btn = document.getElementById('setup-copy-btn');
+  copyText(text, btn);
+}
+
+function finishSetup() {
+  const name = document.getElementById('learner-modal').dataset.pendingName;
+  if (!name) return;
+  localStorage.setItem(LEARNER_KEY, name);
+  hideLearnerModal();
+  updateLearnerSlugs(name);
+  updateLearnerNameWrap(name);
+  loadProgress();
+}
+
+function hideLearnerModal() {
+  const modal = document.getElementById('learner-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    // Reset to step 1 for next open
+    document.getElementById('modal-step-1').classList.add('active');
+    document.getElementById('modal-step-2').classList.remove('active');
+  }
+}
+
+// ── Switch modal (returning learners) ────────────────────────────────────────
+
+function showLearnerModal() {
+  // "switch" button calls this — show the simple switch modal
+  const modal = document.getElementById('switch-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    const input = document.getElementById('switch-input');
+    if (input) { input.value = getLearner(); input.focus(); input.select(); }
+  }
+}
+
+function hideSwitchModal() {
+  const modal = document.getElementById('switch-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function applySwitchLearner() {
+  const input = document.getElementById('switch-input');
+  const name = (input ? input.value.trim() : '').replace(/[^a-zA-Z0-9_\-]/g, '') || 'learner';
+  localStorage.setItem(LEARNER_KEY, name);
+  hideSwitchModal();
+  updateLearnerSlugs(name);
+  updateLearnerNameWrap(name);
+  loadProgress();
+}
+
+function updateLearnerSlugs(name) {
+  document.querySelectorAll('.learner-slug').forEach(el => { el.textContent = name; });
+}
+function updateLearnerNameWrap(name) {
+  const label = document.getElementById('learner-name-label');
+  if (label) label.textContent = name;
+}
+
+// ── Progress ──────────────────────────────────────────────────────────────────
+
+function loadProgress() {
+  for (let n = 1; n <= TOTAL; n++) {
+    const btn  = document.getElementById(`complete-btn-${n}`);
+    const msg  = document.getElementById(`complete-msg-${n}`);
+    const vbtn = document.getElementById(`verify-btn-${n}`);
+    const dot  = document.getElementById(`dot-${n}`);
+    const nav  = document.getElementById(`nav-${n}`);
+    if (btn)  btn.style.display  = '';
+    if (msg)  msg.style.display  = 'none';
+    if (vbtn) vbtn.style.display = '';
+    if (dot)  dot.classList.remove('done');
+    if (nav)  nav.classList.remove('done');
+  }
+  let done = 0;
+  for (let n = 1; n <= TOTAL; n++) {
+    if (localStorage.getItem(KEY(n)) === '1') { applyDone(n); done++; }
+  }
+  updateHeader(done);
+}
+
+function applyDone(n) {
+  const btn    = document.getElementById(`complete-btn-${n}`);
+  const msg    = document.getElementById(`complete-msg-${n}`);
+  const vbtn   = document.getElementById(`verify-btn-${n}`);
+  const vblock = document.getElementById(`verify-block-${n}`);
+  const dot    = document.getElementById(`dot-${n}`);
+  const nav    = document.getElementById(`nav-${n}`);
+  if (btn)    btn.style.display    = 'none';
+  if (vbtn)   vbtn.style.display   = 'none';
+  if (vblock) vblock.classList.remove('open');
+  if (msg)    msg.style.display    = 'block';
+  if (dot)    dot.classList.add('done');
+  if (nav)    nav.classList.add('done');
+}
+
+function markComplete(n) {
+  localStorage.setItem(KEY(n), '1');
+  applyDone(n);
+  let done = 0;
+  for (let i = 1; i <= TOTAL; i++) { if (localStorage.getItem(KEY(i)) === '1') done++; }
+  updateHeader(done);
+  const msg = document.getElementById(`complete-msg-${n}`);
+  if (msg) setTimeout(() => msg.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+function updateHeader(done) {
+  const el = document.getElementById('progress-count');
+  if (!el) return;
+  el.textContent = done === TOTAL ? 'All 7 sessions complete 🎉' : `${done} of ${TOTAL} sessions complete`;
+}
+
+function resetProgress() {
+  if (!confirm('Reset all progress? This cannot be undone.')) return;
+  for (let n = 1; n <= TOTAL; n++) localStorage.removeItem(KEY(n));
+  loadProgress();
+}
+
+// ── Verify panel ──────────────────────────────────────────────────────────────
+
+function toggleVerify(n) {
+  const block = document.getElementById(`verify-block-${n}`);
+  if (block) block.classList.toggle('open');
+}
+
+function copyVerify(n, filename) {
+  const learner = getLearner() || 'your-name';
+  const prompt = `Please verify my Session ${n} implementation at learners/${learner}/${filename}`;
+  const btn = document.getElementById(`copy-btn-${n}`);
+  copyText(prompt, btn);
+}
+
+function copyText(text, btn) {
+  const restore = btn ? btn.textContent : '';
+  navigator.clipboard.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  }).finally ? navigator.clipboard.writeText(text).then(() => flash(btn, restore)).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    flash(btn, restore);
+  }) : flash(btn, restore);
+}
+
+function flash(btn, restore) {
+  if (!btn) return;
+  btn.textContent = 'Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = restore || 'Copy'; btn.classList.remove('copied'); }, 2000);
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('mobile-open');
+}
+document.querySelectorAll('.session-nav a').forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('mobile-open');
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  const learner = getLearner();
+  if (!learner) {
+    document.getElementById('learner-modal').classList.remove('hidden');
+  } else {
+    updateLearnerSlugs(learner);
+    updateLearnerNameWrap(learner);
+    loadProgress();
+  }
+});
+</script>
+</body>
+</html>
