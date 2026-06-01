@@ -257,6 +257,12 @@ pre {
   border: 1px solid #3A2E24;
 }
 code { font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace; }
+pre.code-omitted {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: #9A8C7D;
+  font-style: italic;
+}
 p code, li code {
   background: var(--bg-card);
   padding: 1px 6px;
@@ -618,16 +624,7 @@ p code, li code {
     <div class="warmup-tag">Quick win · 5 min</div>
     <h3>Make your first API call</h3>
     <p>Install the SDK and set your key: <code>pip install anthropic</code>, then <code>export ANTHROPIC_API_KEY="your-key"</code> (get one at console.anthropic.com, free tier works). Then run this:</p>
-<pre><code>import anthropic
-
-client = anthropic.Anthropic()  # reads key from env
-
-response = client.messages.create(
-    model="claude-haiku-4-5-20251001",
-    max_tokens=100,
-    messages=[{"role": "user", "content": "Say hello!"}]
-)
-print(response)</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
     <p class="warmup-note">That's the whole API in one call. Everything else in this plan is built on top of what you just ran.</p>
   </div>
 
@@ -641,15 +638,7 @@ print(response)</code></pre>
       <div class="chunk-body">
         <p>The response object contains more than just the reply text. Explore it.</p>
         <p><strong>Task:</strong> Print <code>response.content</code>, <code>response.stop_reason</code>, and <code>response.usage</code> separately. Then write a helper <code>extract(r)</code> that returns a clean dict from any response:</p>
-<pre><code>def extract(r):
-    return {
-        "text": r.content[0].text,
-        "input_tokens": r.usage.input_tokens,
-        "output_tokens": r.usage.output_tokens,
-        "stop_reason": r.stop_reason
-    }
-
-print(extract(response))</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>What is <code>stop_reason</code> right now? Write down every value it could have — one of them will appear in Session 2 and change everything about how you read a response.</p>
@@ -666,19 +655,7 @@ print(extract(response))</code></pre>
       <div class="chunk-body">
         <p>Cost, context limits, and speed are all measured in tokens — not words or characters. Most people assume they're roughly the same. They're not.</p>
         <p><strong>Task:</strong> Call the API with 5 inputs and log <code>usage.input_tokens</code> for each:</p>
-<pre><code>inputs = [
-    "Alex",
-    "def add(a, b):\n    return a + b",
-    '{"name": "Alice", "age": 30, "city": "NYC"}',
-    "antidisestablishmentarianism",
-    "🎉"
-]
-for text in inputs:
-    r = client.messages.create(
-        model="claude-haiku-4-5-20251001", max_tokens=1,
-        messages=[{"role": "user", "content": text}]
-    )
-    print(f"{repr(text[:35])}: {r.usage.input_tokens} tokens")</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Which input has the most tokens per character? Which has the fewest? Is "antidisestablishmentarianism" more or fewer tokens than the emoji? The answer is probably not what you expect.</p>
@@ -695,18 +672,7 @@ for text in inputs:
       <div class="chunk-body">
         <p>Every API call is fully independent. The model has no memory between calls. You're about to feel this directly.</p>
         <p><strong>Task:</strong> Tell the model your name. Then, in a completely separate call, ask what your name is — but <em>don't</em> include the first exchange:</p>
-<pre><code># Call 1: tell it your name
-client.messages.create(
-    model="claude-haiku-4-5-20251001", max_tokens=50,
-    messages=[{"role": "user", "content": "My name is Jordan."}]
-)
-
-# Call 2: ask — but do NOT include call 1's messages
-r = client.messages.create(
-    model="claude-haiku-4-5-20251001", max_tokens=50,
-    messages=[{"role": "user", "content": "What's my name?"}]
-)
-print(r.content[0].text)</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>What does it say? This is not a bug — it's the API's fundamental design. Every single solution to "agent memory" is a direct workaround for exactly this behavior. Remember this moment.</p>
@@ -723,18 +689,7 @@ print(r.content[0].text)</code></pre>
       <div class="chunk-body">
         <p>The fix is simple: send every previous turn on every new call. The full conversation lives in your code, not in the API.</p>
         <p><strong>Task:</strong> Maintain a <code>messages</code> list. After each call, append both the user message and assistant reply. Pass the full list each time. Run a 5-turn conversation:</p>
-<pre><code>messages = []
-for i in range(5):
-    user_text = input("You: ")
-    messages.append({"role": "user", "content": user_text})
-    r = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=200, messages=messages
-    )
-    reply = r.content[0].text
-    messages.append({"role": "assistant", "content": reply})
-    print(f"Claude: {reply}")
-    print(f"  [input tokens: {r.usage.input_tokens}]")</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Print <code>len(messages)</code> and <code>r.usage.input_tokens</code> each turn. What's the relationship between them? What would input_tokens look like after 50 turns? After 200?</p>
@@ -790,23 +745,7 @@ for i in range(5):
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Define a tool — see what comes back</h3>
     <p>Add a <code>tools</code> parameter to your API call with one tool defined, and ask the model to use it:</p>
-<pre><code>tools = [{
-    "name": "get_weather",
-    "description": "Get the current weather for a city.",
-    "input_schema": {
-        "type": "object",
-        "properties": {"city": {"type": "string"}},
-        "required": ["city"]
-    }
-}]
-
-r = client.messages.create(
-    model="claude-haiku-4-5-20251001", max_tokens=200,
-    tools=tools,
-    messages=[{"role": "user", "content": "What's the weather in Tokyo?"}]
-)
-print("stop_reason:", r.stop_reason)
-print("content:", r.content)</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
     <p class="warmup-note">Notice what's missing: an answer. The model didn't tell you the weather — it returned a request to call a function. It declared intent. That distinction is the whole session.</p>
   </div>
 
@@ -820,14 +759,7 @@ print("content:", r.content)</code></pre>
       <div class="chunk-body">
         <p>Parse what the model returned. The content list holds a <code>ToolUseBlock</code>, not a text block.</p>
         <p><strong>Task:</strong> Extract and print <code>block.id</code>, <code>block.name</code>, and <code>block.input</code> from the warm-up response:</p>
-<pre><code>for block in r.content:
-    if block.type == "tool_use":
-        print("id:   ", block.id)
-        print("name: ", block.name)
-        print("input:", block.input)
-
-# The model told you exactly what to call and with what arguments.
-# It did not call anything.</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Run a prompt that <em>doesn't</em> need a tool ("What's 2 + 2?") and compare <code>stop_reason</code>. What are the two values you see, and what does each mean?</p>
@@ -844,25 +776,7 @@ print("content:", r.content)</code></pre>
       <div class="chunk-body">
         <p>The model asked you to call a function. Now call it (fake the result) and report back. The cycle — tool_use → execute → tool_result — is the mechanical core of every agent ever built.</p>
         <p><strong>Task:</strong> Append the assistant's response, then append a <code>tool_result</code> message, then call again:</p>
-<pre><code>messages = [{"role": "user", "content": "What's the weather in Tokyo?"}]
-messages.append({"role": "assistant", "content": r.content})
-
-tool_block = r.content[0]  # the ToolUseBlock from the warmup
-
-messages.append({
-    "role": "user",
-    "content": [{
-        "type": "tool_result",
-        "tool_use_id": tool_block.id,
-        "content": "Sunny, 24°C, light wind."
-    }]
-})
-
-r2 = client.messages.create(
-    model="claude-haiku-4-5-20251001", max_tokens=200,
-    tools=tools, messages=messages
-)
-print(r2.content[0].text)  # now it answers</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Change one character in <code>tool_use_id</code> and run it again. What error do you get? Why does the model need the ID to match — what would go wrong in a multi-tool response without it?</p>
@@ -879,34 +793,7 @@ print(r2.content[0].text)  # now it answers</code></pre>
       <div class="chunk-body">
         <p>Wrap the tool cycle in a while loop. Keep running until the model signals it's done.</p>
         <p><strong>Task:</strong> Give the model a fake <code>search(query)</code> and a real <code>write_file(filename, content)</code>. Ask it to find something and save it. Build the loop:</p>
-<pre><code>def execute_tool(name, args):
-    if name == "search":
-        return f"Top result for '{args['query']}': [fake result]"
-    if name == "write_file":
-        with open(args["filename"], "w") as f:
-            f.write(args["content"])
-        return "File written successfully."
-
-step = 0
-while True:
-    r = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=500, tools=tools, messages=messages
-    )
-    step += 1
-    print(f"Step {step}: stop_reason={r.stop_reason}")
-
-    if r.stop_reason == "end_turn":
-        print(r.content[0].text)
-        break
-
-    messages.append({"role": "assistant", "content": r.content})
-    for block in r.content:
-        if block.type == "tool_use":
-            result = execute_tool(block.name, block.input)
-            messages.append({"role": "user", "content": [
-                {"type": "tool_result", "tool_use_id": block.id, "content": result}
-            ]})</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Give it a task that requires 3 tool calls. Log <code>stop_reason</code> on every iteration. Write down the exact sequence of values you see. This sequence is the heartbeat of every agent loop.</p>
@@ -922,10 +809,7 @@ while True:
       </div>
       <div class="chunk-body">
         <p>Replace your <code>search</code> function with one that always returns an error. Run 5+ steps. Log everything.</p>
-<pre><code>def search(query):
-    return "Error: permission denied. Access to external resources is blocked."
-
-# Run your agent loop and log each step's response text</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Does the model loop forever, give up gracefully, ask for help, or fabricate a plausible-sounding result? Write down exactly what you see — this failure mode will appear in production and you need to recognize it.</p>
@@ -941,21 +825,7 @@ while True:
       </div>
       <div class="chunk-body">
         <p>Add hard limits so the loop can't run forever or cost you an unexpected amount.</p>
-<pre><code>MAX_STEPS = 10
-TOKEN_BUDGET = 30_000
-step = 0
-total_tokens = 0
-
-while step &lt; MAX_STEPS and total_tokens &lt; TOKEN_BUDGET:
-    r = client.messages.create(...)
-    total_tokens += r.usage.input_tokens + r.usage.output_tokens
-    step += 1
-    # ... rest of loop ...
-
-if step &gt;= MAX_STEPS:
-    print(f"Stopped: hit {MAX_STEPS} steps")
-elif total_tokens &gt;= TOKEN_BUDGET:
-    print(f"Stopped: budget exhausted ({total_tokens:,} tokens)")</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Design a task that should take many steps. Lower TOKEN_BUDGET to 5,000 and raise MAX_STEPS to 50. Which limit fires? Then reverse the values. What changes — and what does that tell you about the right defaults for different task types?</p>
@@ -995,7 +865,7 @@ elif total_tokens &gt;= TOKEN_BUDGET:
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Watch the tokens climb</h3>
     <p>Take your agent from Session 2. Add one line at the start of each loop iteration before the API call:</p>
-<pre><code>print(f"Step {step}: {sum(len(str(m)) for m in messages)//4} approx tokens in messages")</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
     <p>Run a 15-step task. Save the output. Watch the number grow every single step — even when the task isn't doing anything new. That's your context window filling up. Everything in this session is a direct response to that problem.</p>
   </div>
 
@@ -1008,20 +878,7 @@ elif total_tokens &gt;= TOKEN_BUDGET:
       </div>
       <div class="chunk-body">
         <p>Sign up for Brave Search API (free tier, no credit card). Replace your fake search with a real one:</p>
-<pre><code>import requests
-
-BRAVE_KEY = "your-brave-key"
-
-def search(query: str) -&gt; str:
-    r = requests.get(
-        "https://api.search.brave.com/res/v1/web/search",
-        headers={"X-Subscription-Token": BRAVE_KEY},
-        params={"q": query, "count": 3}
-    )
-    results = r.json().get("web", {}).get("results", [])
-    return "\n".join(
-        f"- {x['title']}: {x['description']}" for x in results
-    )</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <p>Ask your agent something that requires current knowledge — a recent event, a price, today's date.</p>
         <div class="observe">
           <div class="observe-label">Observe this</div>
@@ -1038,25 +895,7 @@ def search(query: str) -&gt; str:
       </div>
       <div class="chunk-body">
         <p>When your message history gets too large, summarize the oldest turns and drop them. You trade precision for space.</p>
-<pre><code>def maybe_compress(messages, client, threshold=4000):
-    approx_tokens = sum(len(str(m)) for m in messages) // 4
-    if approx_tokens &lt; threshold:
-        return messages
-
-    to_compress = messages[:-4]   # summarize everything except last 2 turns
-    r = client.messages.create(
-        model="claude-haiku-4-5-20251001", max_tokens=300,
-        messages=[{"role": "user", "content":
-            f"Summarize this conversation history in 2-3 sentences, "
-            f"keeping key facts:\n\n{to_compress}"}]
-    )
-    summary = r.content[0].text
-    compressed = [{"role": "user", "content": f"[Earlier context]: {summary}"}]
-    print(f"Compressed {len(to_compress)} messages → 1 summary")
-    return compressed + messages[-4:]
-
-# Call at the start of each loop iteration:
-messages = maybe_compress(messages, client)</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Print the approximate token count before and after each compression event. What's the compression ratio? Run it on conversations with different content types — is the ratio consistent?</p>
@@ -1087,21 +926,7 @@ messages = maybe_compress(messages, client)</code></pre>
       </div>
       <div class="chunk-body">
         <p>When a 10-step loop fails on step 7, logs are the only way to understand why. Add them now, not later.</p>
-<pre><code>import json, time
-
-def log(f, event_type, **data):
-    f.write(json.dumps({"ts": time.time(), "type": event_type, **data}) + "\n")
-
-with open("agent.log", "w") as log_file:
-    # Inside your loop, after each tool call:
-    log(log_file, "tool_call",
-        step=step, tool=block.name,
-        args=block.input, result=result[:200],
-        tokens_in=r.usage.input_tokens)
-
-    # When compression fires:
-    log(log_file, "compression",
-        before_msgs=len_before, after_msgs=len_after)</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>After a run that produces an unexpected result, open <code>agent.log</code>. Can you reconstruct exactly what happened — every decision, every tool call, every token count — from the log alone? If not, what's missing?</p>
@@ -1141,8 +966,7 @@ with open("agent.log", "w") as log_file:
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Turn on Thought lines</h3>
     <p>Add exactly one sentence to your system prompt:</p>
-<pre><code>system = """You are a research assistant.
-Before every tool call, write a line starting with 'Thought:' explaining what you're about to do and why."""</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
     <p>Run any task from Session 3. Read the Thought lines out loud as they appear. Notice how the model's stated reasoning compares to the tool it actually picks next. This is the ReAct pattern — you just turned it on with one sentence.</p>
   </div>
 
@@ -1171,18 +995,7 @@ Before every tool call, write a line starting with 'Thought:' explaining what yo
       </div>
       <div class="chunk-body">
         <p>Two API calls instead of one loop: first produce a plan, then execute it. Good for well-defined tasks. Fragile when reality diverges from the plan.</p>
-<pre><code># Phase 1: plan only (no tools available)
-plan_r = client.messages.create(
-    model="claude-haiku-4-5-20251001", max_tokens=400,
-    system="Create a numbered step-by-step plan. Do not execute. Be specific.",
-    messages=[{"role": "user", "content": task}]
-)
-plan = plan_r.content[0].text
-print("Plan:\n", plan)
-
-# Phase 2: execute with tools, plan as context
-exec_system = f"Execute this plan step by step:\n\n{plan}"
-# ... run your agent loop with exec_system ...</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <p><strong>Break it:</strong> Design a task where step 3 depends on information only available from step 2's result. For example: "Find the most popular Python web framework. Then look up its latest version. Then check if that version has any known CVEs."</p>
         <div class="observe">
           <div class="observe-label">Observe this</div>
@@ -1199,30 +1012,7 @@ exec_system = f"Execute this plan step by step:\n\n{plan}"
       </div>
       <div class="chunk-body">
         <p>The orchestrator's only tool is <code>call_subagent(task)</code>. The sub-agent is your agent loop from Session 2. Each agent has its own independent context window — this is the key insight.</p>
-<pre><code>def call_subagent(task: str) -&gt; str:
-    """Run the agent loop on a subtask and return the final answer."""
-    sub_messages = [{"role": "user", "content": task}]
-    step = 0
-    while step &lt; 8:
-        r = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=500, tools=agent_tools, messages=sub_messages
-        )
-        step += 1
-        if r.stop_reason == "end_turn":
-            return r.content[0].text
-        # ... handle tool calls ...
-    return "Sub-agent reached step limit."
-
-orchestrator_tools = [{
-    "name": "call_subagent",
-    "description": "Delegate a specific, self-contained task to a sub-agent.",
-    "input_schema": {
-        "type": "object",
-        "properties": {"task": {"type": "string", "description": "The complete task for the sub-agent."}},
-        "required": ["task"]
-    }
-}]</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Log <code>len(messages)</code> for the orchestrator and for each sub-agent call separately. Why is the sub-agent's context always shorter? Why is that a feature rather than a limitation?</p>
@@ -1239,12 +1029,7 @@ orchestrator_tools = [{
       <div class="chunk-body">
         <p>Run the exact same task through all three patterns. Log steps taken, total tokens used, and your judgment of result quality.</p>
         <p><strong>Task to use:</strong> <em>"Find 3 recent Python libraries for building REST APIs, compare their GitHub star counts, and write a brief recommendation to api-libraries.md."</em></p>
-<pre><code># For each pattern, log:
-results = {
-    "react":            {"steps": 0, "tokens": 0, "quality": ""},
-    "plan_and_execute": {"steps": 0, "tokens": 0, "quality": ""},
-    "multi_agent":      {"steps": 0, "tokens": 0, "quality": ""}
-}</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Which pattern produces the most <em>consistent</em> step count across 3 runs of the same task? Which produces the highest quality result? Are they the same pattern — or does that tell you something about the tradeoff between reliability and quality?</p>
@@ -1279,20 +1064,7 @@ results = {
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Feel semantic similarity</h3>
     <p>Install: <code>pip install sentence-transformers</code>. Then embed two sentences and compute their dot product:</p>
-<pre><code>from sentence_transformers import SentenceTransformer
-
-model = SentenceTransformer('all-MiniLM-L6-v2')  # downloads ~80MB once
-
-a = model.encode("The cat sat on the mat")
-b = model.encode("A feline rested on a rug")
-c = model.encode("The stock market crashed yesterday")
-
-dot_ab = sum(x * y for x, y in zip(a, b))
-dot_ac = sum(x * y for x, y in zip(a, c))
-
-print(f"Similar sentences dot product:   {dot_ab:.4f}")
-print(f"Unrelated sentences dot product: {dot_ac:.4f}")
-print(f"Vector dimensions: {len(a)}")</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
     <p class="warmup-note">The difference between those two numbers is semantic similarity in action. Same idea, similar words, similar vector. Different topic, very different vector.</p>
   </div>
 
@@ -1306,31 +1078,7 @@ print(f"Vector dimensions: {len(a)}")</code></pre>
       <div class="chunk-body">
         <p>The dot product alone isn't a reliable similarity score — longer vectors produce bigger dot products regardless of direction. Cosine similarity normalizes for vector magnitude.</p>
         <p><strong>Task:</strong> Implement it yourself, no library:</p>
-<pre><code>def cosine_similarity(a, b):
-    dot   = sum(x * y for x, y in zip(a, b))
-    mag_a = sum(x**2 for x in a) ** 0.5
-    mag_b = sum(x**2 for x in b) ** 0.5
-    return dot / (mag_a * mag_b)  # always between -1 and 1
-
-# Store 5 text chunks and embed them
-chunks = [
-    "Acme Corp was founded in 2018 by Maria Chen and James Wu.",
-    "The company's main product is an AI-powered scheduling tool.",
-    "Acme raised $12M Series A in 2021 led by Sequoia.",
-    "The engineering team uses Python, Go, and React.",
-    "CEO Maria Chen previously worked at Google Brain."
-]
-embeddings = model.encode(chunks)  # shape: (5, 384)
-
-def find_nearest(query, chunks, embeddings):
-    q_emb = model.encode(query)
-    scores = [cosine_similarity(q_emb, e) for e in embeddings]
-    best = max(range(len(scores)), key=lambda i: scores[i])
-    return chunks[best], scores[best]
-
-result, score = find_nearest("Who started the company?", chunks, embeddings)
-print(f"Score: {score:.4f}")
-print(f"Match: {result}")</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Now search for <em>"What's the company's founding story?"</em> — does it return the same chunk? The words are completely different, but the meaning is the same. This is semantic search. Try to find a query that retrieves the wrong chunk, and understand why it matched.</p>
@@ -1346,25 +1094,7 @@ print(f"Match: {result}")</code></pre>
       </div>
       <div class="chunk-body">
         <p>Wire your retrieval function into your agent as a callable tool. The agent decides when to use it.</p>
-<pre><code>KB_CHUNKS = [
-    "Acme Corp was founded in 2018 by Maria Chen and James Wu in Seattle.",
-    "The flagship product, ScheduleAI, is used by 500+ enterprise customers.",
-    "Acme raised $12M Series A in 2021 and $40M Series B in 2023.",
-    "The engineering team is 45 people, primarily Python and Go.",
-    "CEO Maria Chen was previously a research scientist at Google Brain.",
-    "CTO James Wu led infrastructure at Stripe before co-founding Acme.",
-    "ScheduleAI integrates with Google Calendar, Outlook, and Zoom.",
-    "The company is headquartered in Seattle with a London office."
-]
-KB_EMBEDDINGS = model.encode(KB_CHUNKS)
-
-def retrieve_context(query: str) -&gt; str:
-    q_emb = model.encode(query)
-    scores = [cosine_similarity(q_emb, e) for e in KB_EMBEDDINGS]
-    top2 = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:2]
-    return "\n".join(KB_CHUNKS[i] for i in top2)
-
-# Add this as a tool to your agent loop</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Ask something whose answer is clearly in the knowledge base. Now ask something not in it at all — something about a competitor or a topic the chunks don't cover. Does the agent say it doesn't know, search the web (if that tool is available), or make something up? What determined which behavior you got?</p>
@@ -1422,16 +1152,7 @@ def retrieve_context(query: str) -&gt; str:
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Watch it die</h3>
     <p>Wrap your API call in a function that raises an error on the first attempt:</p>
-<pre><code>call_count = 0
-
-def fragile_api_call(**kwargs):
-    global call_count
-    call_count += 1
-    if call_count % 3 == 1:  # fail every 3rd call
-        raise anthropic.RateLimitError("rate_limit_error", response=None, body={})
-    return client.messages.create(**kwargs)
-
-# Replace your client.messages.create() with fragile_api_call()</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
     <p class="warmup-note">Run your agent. It crashes on the first failed call with no recovery. That's your current production reliability. This session is the fix.</p>
   </div>
 
@@ -1444,28 +1165,7 @@ def fragile_api_call(**kwargs):
       </div>
       <div class="chunk-body">
         <p>Transient errors (rate limits, timeouts, 5xx) are worth retrying. Permanent errors (bad API key, malformed request) are not. Know the difference.</p>
-<pre><code>import time
-
-def call_with_retry(fn, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            return fn()
-        except anthropic.RateLimitError:
-            if attempt == max_retries - 1: raise
-            wait = 2 ** attempt   # 1s, 2s, 4s
-            print(f"Rate limited. Retrying in {wait}s...")
-            time.sleep(wait)
-        except anthropic.APIStatusError as e:
-            if e.status_code &gt;= 500:   # server error — transient
-                if attempt == max_retries - 1: raise
-                time.sleep(2 ** attempt)
-            else:
-                raise   # 4xx — client error, don't retry
-
-# Usage:
-response = call_with_retry(
-    lambda: client.messages.create(model="claude-haiku-4-5-20251001", ...)
-)</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <p>Simulate failures using your <code>fragile_api_call</code> wrapper. Test at 10%, 30%, and 50% failure rates.</p>
         <div class="observe">
           <div class="observe-label">Observe this</div>
@@ -1482,16 +1182,7 @@ response = call_with_retry(
       </div>
       <div class="chunk-body">
         <p>Tokens arrive as they're generated. Total time is similar — perceived responsiveness is dramatically better.</p>
-<pre><code>with client.messages.stream(
-    model="claude-haiku-4-5-20251001",
-    max_tokens=500,
-    messages=messages
-) as stream:
-    for text in stream.text_stream:
-        print(text, end="", flush=True)
-    print()  # newline at end
-    final = stream.get_final_message()
-    print(f"\n[tokens in: {final.usage.input_tokens}]")</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <p>Run the same prompt with and without streaming, timing both with <code>time.time()</code>.</p>
         <div class="observe">
           <div class="observe-label">Observe this</div>
@@ -1508,21 +1199,7 @@ response = call_with_retry(
       </div>
       <div class="chunk-body">
         <p>Your system prompt and tool definitions are byte-for-byte identical on every API call. You're paying full price for them every time. Caching cuts that cost to ~10%.</p>
-<pre><code>response = client.messages.create(
-    model="claude-haiku-4-5-20251001",
-    max_tokens=500,
-    system=[{
-        "type": "text",
-        "text": "Your system prompt here...",
-        "cache_control": {"type": "ephemeral"}
-    }],
-    messages=messages
-)
-
-# On the first call: cache_creation_input_tokens &gt; 0
-# On subsequent calls: cache_read_input_tokens &gt; 0
-print("Created:", response.usage.cache_creation_input_tokens)
-print("Read:   ", response.usage.cache_read_input_tokens)</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <p>Run the same agent task twice. Compare token costs between run 1 and run 2.</p>
         <div class="observe">
           <div class="observe-label">Observe this</div>
@@ -1539,30 +1216,7 @@ print("Read:   ", response.usage.cache_read_input_tokens)</code></pre>
       </div>
       <div class="chunk-body">
         <p>Ask the model to always end with a JSON summary. If it doesn't, send a correction and let it retry.</p>
-<pre><code>import json
-
-REQUIRED_SCHEMA = '{"result": "...", "steps_taken": N, "confidence": "high|medium|low"}'
-
-def get_structured_result(messages, client):
-    system = f"Always end your final response with this JSON on its own line: {REQUIRED_SCHEMA}"
-    r = client.messages.create(
-        model="claude-haiku-4-5-20251001", max_tokens=600,
-        system=system, messages=messages
-    )
-    text = r.content[0].text
-    try:
-        json_start = text.rfind("{")
-        return json.loads(text[json_start:])
-    except (json.JSONDecodeError, ValueError):
-        # Ask for correction
-        messages.append({"role": "assistant", "content": text})
-        messages.append({"role": "user", "content":
-            "Your response is missing the required JSON summary. Please add it now."})
-        r2 = client.messages.create(
-            model="claude-haiku-4-5-20251001", max_tokens=200,
-            messages=messages
-        )
-        return json.loads(r2.content[0].text)</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <div class="observe">
           <div class="observe-label">Observe this</div>
           <p>Run 5 trials without explicit format instructions, then 5 trials with them. How often does the model include the JSON correctly in each case? Does the self-correction retry always succeed, or can it fail too?</p>
@@ -1666,10 +1320,7 @@ def get_structured_result(messages, client):
       </div>
       <div class="chunk-body">
         <p><strong>Task:</strong> Push to GitHub. Tag the release <code>v1.0</code>:</p>
-<pre><code>git add .
-git commit -m "capstone: v1.0"
-git tag v1.0
-git push origin main --tags</code></pre>
+<pre class="code-omitted"><code>Code omitted — implement this in your session file (look for the matching # TODO:).</code></pre>
         <p>Write a short retrospective — 4 sentences or so: what clicked, what surprised you, what you'd do differently, and one thing you want to learn next.</p>
         <div class="observe">
           <div class="observe-label">Observe this</div>

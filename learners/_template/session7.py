@@ -46,35 +46,15 @@ client = anthropic.Anthropic()
 #
 # Write down any decision you made mid-build that wasn't in your design —
 # those surprises are a key output of this chunk.
-
+#
 # ─── Your implementation starts here ─────────────────────────────────────────
-
-
-def log(f, event_type, **data):
-    f.write(json.dumps({"ts": time.time(), "type": event_type, **data}) + "\n")
-
-def call_with_retry(fn, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            return fn()
-        except anthropic.RateLimitError:
-            if attempt == max_retries - 1: raise
-            wait = 2 ** attempt
-            print(f"Rate limited. Retrying in {wait}s...")
-            time.sleep(wait)
-        except anthropic.APIStatusError as e:
-            if e.status_code >= 500:
-                if attempt == max_retries - 1: raise
-                time.sleep(2 ** attempt)
-            else:
-                raise
-
-# TODO: define your tools here
-
+#
+# TODO: bring forward the helpers you've already built in earlier sessions —
+#   - log(f, event_type, **data)          (Session 3)
+#   - call_with_retry(fn, max_retries=3)  (Session 6)
+# TODO: define your tools
 # TODO: implement your tool execution function
-
 # TODO: implement your agent loop
-
 # TODO: add compression if your design calls for it
 
 
@@ -106,10 +86,4 @@ def call_with_retry(fn, max_retries=3):
 #   4. One thing you want to learn next
 #
 # Write it here or in a RETRO.md:
-#
 # RETROSPECTIVE:
-
-
-if __name__ == "__main__":
-    # TODO: run your agent
-    pass
