@@ -552,7 +552,7 @@ p code, li code {
       <div class="setup-cmd-box" id="setup-cmd-box"></div>
       <button class="copy-btn" id="setup-copy-btn" onclick="copySetupCmd()" style="margin-bottom:16px">Copy command</button>
       <p style="font-size:13px;color:var(--text-mid);margin-bottom:8px;">Then install dependencies (if not done):</p>
-      <div class="setup-cmd-box">pip install anthropic sentence-transformers requests</div>
+      <div class="setup-cmd-box">pip install anthropic requests sentence-transformers</div>
       <button class="learner-start-btn" onclick="finishSetup()" style="margin-top:8px">I've run the setup ✓</button>
       <button class="modal-cancel-btn" onclick="backToStep1()">← Back</button>
     </div>
@@ -623,7 +623,7 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 5 min</div>
     <h3>Make your first API call</h3>
-    <p>Install the SDK and set your key: <code>pip install anthropic</code>, then <code>export ANTHROPIC_API_KEY="your-key"</code> (get one at console.anthropic.com, free tier works). Then run this:</p>
+    <p>Your key is already in <code>.env</code> from the welcome setup, and <code>env.py</code> loads it automatically — no <code>export</code> needed. Just fill in the first <code># TODO:</code> in your <code>session1.py</code> and run it:</p>
 <pre class="code-omitted"><code>Implement this in your session1.py — see the matching # TODO:</code></pre>
     <p class="warmup-note">That's the whole API in one call. Everything else in this plan is built on top of what you just ran.</p>
   </div>
