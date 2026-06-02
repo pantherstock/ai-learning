@@ -5,26 +5,38 @@ One worked solution per chunk. Read these AFTER you've tried session4.py yoursel
 The whole point of this file: all three patterns reuse ONE loop (agent_loop). They
 differ only in the system prompt and which tools they get — not in the machinery.
 
-Uses the same FAKE search you built in Session 2 — no Brave key, no network, fully
-reproducible. The structural lessons (Thought-vs-action, plan divergence, context
+Uses the real Brave Search when BRAVE_SEARCH_API_KEY is set, and falls back to a
+FAKE one-line search otherwise — so the run stays reproducible with no key / no
+network. The structural lessons (Thought-vs-action, plan divergence, context
 isolation) show up regardless of whether the search returns real data.
 
 Run with: python session4.py
 """
 
 import env  # auto-loads .env — no manual `export` needed
+import os
 import sys
 import anthropic
+import requests
 
 sys.stdout.reconfigure(encoding="utf-8")  # the model sometimes prints emoji (stars); Windows cp1252 console would crash on them
 
 client = anthropic.Anthropic()
 MODEL = "claude-haiku-4-5-20251001"
+BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 
 
 # ─── Shared tools (the same ones from Session 2) ─────────────────────────────
 def search(query):
-    return f"[fake search result for '{query}']"
+    # Real Brave Search when a key is set; otherwise a fake one-liner so the
+    # structural lessons still run with no key and no network.
+    if not BRAVE_KEY:
+        return f"[fake search result for '{query}']"
+    r = requests.get("https://api.search.brave.com/res/v1/web/search",
+                     headers={"X-Subscription-Token": BRAVE_KEY},
+                     params={"q": query, "count": 3})
+    results = r.json().get("web", {}).get("results", [])
+    return "\n".join(f"- {x['title']}: {x['description']}" for x in results)
 
 
 def write_file(filename, content):

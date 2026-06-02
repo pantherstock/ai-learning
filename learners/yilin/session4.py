@@ -10,10 +10,16 @@ pattern is just a different system prompt + toolset. Stuck? See ../_answers/sess
 """
 
 import env  # auto-loads .env — no manual `export` needed
+import os  # used by compare() to guarantee each pattern leaves an output file
+import sys
 import anthropic
+import requests
+
+sys.stdout.reconfigure(encoding="utf-8")  # model output may contain emoji (stars); Windows cp1252 console would crash on them
 
 client = anthropic.Anthropic()
 MODEL = "claude-haiku-4-5-20251001"
+BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 
 # TODO: reuse search + write_file + execute_tool (and their schemas) from Session 2.
 # Copy them here. Keep the FAKE one-line search — no API key needed; the structural
@@ -29,9 +35,17 @@ MODEL = "claude-haiku-4-5-20251001"
 
 # ─── Shared tools (the same ones from Session 2) ─────────────────────────────
 def search(query):
-    if "Tokyo" in query:
-        return "[Search result: Tokyo has 37.3 million people as of last year]"
-    return f"[fake search result for '{query}']"
+    # Real Brave Search when a key is set; otherwise a fake one-liner so the
+    # structural lessons still run with no key and no network.
+    if not BRAVE_KEY:
+        if "Tokyo" in query:
+            return "[Search result: Tokyo has 37.3 million people as of last year]"
+        return f"[fake search result for '{query}']"
+    r = requests.get("https://api.search.brave.com/res/v1/web/search",
+                     headers={"X-Subscription-Token": BRAVE_KEY},
+                     params={"q": query, "count": 3})
+    results = r.json().get("web", {}).get("results", [])
+    return "\n".join(f"- {x['title']}: {x['description']}" for x in results)
 
 
 def write_file(filename, content):
@@ -154,7 +168,7 @@ def run_plan_execute_agent(task, max_steps=10):
 
     # Phase 2 — execute the fixed plan. Seed tokens with the planning call.
     result = agent_loop([{"role": "user", "content": task}],
-                        f"Execute this plan step by step. If any step fails, continue with the next step and ensure all steps are completed:\n\n{plan_text}", max_steps=max_steps)
+                        f"Execute this plan step by step. Ensure that you complete the write step:\n\n{plan_text}", max_steps=max_steps)
     result["tokens"] += plan.usage.input_tokens + plan.usage.output_tokens
     return result
 
@@ -226,17 +240,88 @@ def run_multi_agent(task, max_steps=8):
 #
 # Done when: you have a 3x3 (pattern x metric) table and a one-paragraph note on
 #   which pattern you'd pick for this task and why.
+#
+# CHALLENGE ANSWER (3 runs each, LIVE Brave search):
+#   pattern       steps avg(min-max)   tokens avg(min-max)    self-wrote
+#   react         6.0 (5-7)            16553 (12015-22247)    3/3
+#   plan_execute  4.7 (4-5)            16230 (12579-18833)    0/3
+#   multi_agent   3.7 (3-4)            7010  (4994-8520)      1/3
+#
+#   CONSISTENCY: plan_execute (4-5) and multi_agent (3-4) tie for the tightest step
+#     spread (1); react is widest (5-7). On tokens react swings hardest (12k->22k)
+#     because it decides each search live; plan_execute's up-front plan steadies it.
+#   RELIABILITY (self-wrote = produced a real doc unaided, no finalize rescue):
+#     react 3/3  >>  multi_agent 1/3 (a sub-agent wrote the file once)  >>  plan_execute
+#     0/3 (always wrote only a preamble). The safety net carried plan_execute all 3 runs.
+#   CONSISTENT != GOOD: plan_execute is among the most consistent on steps yet NEVER
+#     delivered the document itself — predictable process, unreliable outcome.
+#   TWO MISLEADING COLUMNS (measurement artifacts, not real wins):
+#     - multi_agent's 7010 tokens looks cheapest, but result["tokens"] counts only the
+#       ORCHESTRATOR; each sub-agent runs its own loop whose tokens are never tallied.
+#       The low number is context isolation (4C), not real cheapness.
+#     - tokens also EXCLUDE the finalize_document() rescue, so plan_execute (3 rescues)
+#       and multi_agent (2) actually cost more than shown.
+#   PICK FOR THIS TASK: react — one deliverable that needs outside facts wants the pattern
+#     that reliably produces it (3/3) at an honest cost. multi_agent hides delegated cost
+#     and is flaky (1/3); plan_execute looks tidy but never finishes the write unaided.
 
 
-def compare():
-    rows = {
-        # "react":        run_react_agent(task = "Find 3 recent Python libraries for building REST APIs, compare their GitHub star counts, and write a brief recommendation to api-libraries-react.md."),
-        "plan_execute": run_plan_execute_agent(task = "Find 3 recent Python libraries for building REST APIs, compare their GitHub star counts, and write a brief recommendation to api-libraries-plan_execute.md."),
-        # "multi_agent":  run_multi_agent(task = "Find 3 recent Python libraries for building REST APIs, compare their GitHub star counts, and write a brief recommendation to api-libraries-multi_agent.md."),
+def finalize_document(task, notes):
+    # Deterministic safety net. Some patterns ANNOUNCE the write instead of producing
+    # the document: plan-execute often calls write_file with a preamble sentence as the
+    # content ("I'll now compile..."), and the multi_agent orchestrator has no write_file
+    # tool at all. In those cases we regenerate the document from the task in one clean,
+    # tool-free call so every pattern still leaves a real file.
+    r = client.messages.create(
+        model=MODEL, max_tokens=1024,
+        system="Output ONLY the final markdown document the task asks for — no preamble, "
+               "no 'here is', just the document body.",
+        messages=[{"role": "user",
+                   "content": f"Task:\n{task}\n\nResearch notes so far:\n{notes}\n\n"
+                              "Write the complete document now."}])
+    return r.content[0].text
+
+
+def compare(runs=3):
+    # Run each pattern `runs` times so we can read COST (tokens), CONSISTENCY (spread
+    # across runs), and RELIABILITY (how often the finalize safety net had to fire —
+    # i.e. the pattern did NOT produce a real document on its own). A single run can't
+    # tell you any of those; the look-alike output files definitely can't.
+    task_tmpl = ("Find 3 recent Python libraries for building REST APIs, compare their "
+                 "GitHub star counts, and write a brief recommendation to {outfile}.")
+    patterns = {
+        "react":        (run_react_agent,        "api-libraries-react.md"),
+        "plan_execute": (run_plan_execute_agent, "api-libraries-plan_execute.md"),
+        "multi_agent":  (run_multi_agent,        "api-libraries-multi_agent.md"),
     }
-    print(f"\n{'pattern':<14}{'steps':>7}{'tokens':>9}")
-    for name, r in rows.items():
-        print(f"{name:<14}{r['steps']:>7}{r['tokens']:>9}")
-    return rows
+    stats = {name: {"steps": [], "tokens": [], "finalized": 0} for name in patterns}
+    for name, (runner, outfile) in patterns.items():
+        for i in range(runs):
+            if os.path.exists(outfile):
+                os.remove(outfile)  # clear any stale file from a previous run
+            task = task_tmpl.format(outfile=outfile)
+            result = runner(task=task)
+            # A pattern only "succeeds" if it left a REAL document. react writes the full
+            # doc itself (large file). plan-execute often writes only a preamble, and the
+            # multi_agent orchestrator can't write — so a missing/tiny file (< 300 bytes)
+            # means the pattern failed and we finalize a clean one ourselves.
+            finalized = not os.path.exists(outfile) or os.path.getsize(outfile) < 300
+            if finalized:
+                write_file(outfile, finalize_document(task, result["answer"]))
+            stats[name]["steps"].append(result["steps"])
+            stats[name]["tokens"].append(result["tokens"])
+            stats[name]["finalized"] += int(finalized)
+
+    print(f"\n{'pattern':<14}{'steps avg(min-max)':<22}{'tokens avg(min-max)':<26}"
+          f"{'self-wrote':<12}")
+    for name, s in stats.items():
+        st, tk = s["steps"], s["tokens"]
+        steps_str = f"{sum(st)/len(st):.1f} ({min(st)}-{max(st)})"
+        tok_str = f"{sum(tk)//len(tk)} ({min(tk)}-{max(tk)})"
+        self_wrote = f"{runs - s['finalized']}/{runs}"  # runs the pattern completed unaided
+        print(f"{name:<14}{steps_str:<22}{tok_str:<26}{self_wrote:<12}")
+    # Read it as: small token spread = consistent/predictable cost; self-wrote = N/N
+    # means the pattern reliably finished the task without the safety net.
+    return stats
 
 compare()

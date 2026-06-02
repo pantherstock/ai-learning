@@ -18,7 +18,7 @@ Your keys **load automatically** — `env.py` reads `.env` every time you run a 
 python session1.py
 ```
 
-You need an [Anthropic key](https://console.anthropic.com) from the start, and a free [Brave Search key](https://brave.com/search/api/) from Session 3 on. Add both to `.env` whenever you have them.
+You need an [Anthropic key](https://console.anthropic.com) from the start, and a free [Brave Search key](https://brave.com/search/api/) from Session 4 on (optional — search falls back to a fake result when the key is unset). Add both to `.env` whenever you have them.
 
 ## Working through sessions
 

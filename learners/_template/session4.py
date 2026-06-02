@@ -10,14 +10,22 @@ pattern is just a different system prompt + toolset. Stuck? See ../_answers/sess
 """
 
 import env  # auto-loads .env — no manual `export` needed
+import os
 import anthropic
+import requests
 
 client = anthropic.Anthropic()
 MODEL = "claude-haiku-4-5-20251001"
+BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 
 # TODO: reuse search + write_file + execute_tool (and their schemas) from Session 2.
-# Copy them here. Keep the FAKE one-line search — no API key needed; the structural
-# lessons below show up no matter what the search returns.
+# Wire search(query) to the real Brave Search, with a fake fallback so it still runs
+# with no key / no network — the structural lessons show up either way:
+#   - if not BRAVE_KEY: return f"[fake search result for '{query}']"
+#   - GET https://api.search.brave.com/res/v1/web/search
+#       headers={"X-Subscription-Token": BRAVE_KEY}, params={"q": query, "count": 3}
+#   - results = r.json().get("web", {}).get("results", [])
+#   - return "\n".join(f"- {x['title']}: {x['description']}" for x in results)
 #
 # TODO: factor the Session 2 agent loop into ONE reusable function — this is the
 #   whole point of the session, so every pattern shares it:

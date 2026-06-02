@@ -83,9 +83,9 @@ MODEL = "claude-haiku-4-5-20251001"
 
 
 # ─── MINI PROJECT: RAG wired into the research agent ─────────────────────────
-# Give the Session 3 agent two knowledge sources. Push to GitHub when it passes.
+# Give the Session 4 agent two knowledge sources. Push to GitHub when it passes.
 #
-#   ☐ Tools: search (live web, Session 3) AND retrieve_context (static KB).
+#   ☐ Tools: search (live web, Session 4) AND retrieve_context (static KB).
 #   ☐ execute_tool dispatches to both; the agent picks which to call.
 #   ☐ Run TASK 1 (answerable from the KB):
 #         "Who founded Acme and when?"
