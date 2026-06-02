@@ -1039,63 +1039,63 @@ p code, li code {
 
 <!-- ══════════════════════════════════════════════════════ SESSION 7 -->
 <section class="session" id="session-7">
-  <span class="session-label">Session 7 · ~3–4 hours</span>
+  <span class="session-label">Session 7 · ~2 hours</span>
   <h2>Capstone</h2>
-  <p class="session-theme">Design and ship something real.</p>
+  <p class="session-theme">Build a text adventure that an agent runs by itself.</p>
 
   <div class="warmup">
     <div class="warmup-tag">Quick win · 10 min</div>
-    <h3>Design before you code</h3>
-    <p>Before opening your editor, answer five concrete design questions in writing — pattern, tools, where memory lives, likely failure modes, what you'd log. If you can't answer all five in 10 minutes, the design isn't ready yet.</p>
-    <p class="chunk-pointer">The five questions → <code>session7.py</code> · Warm-up</p>
+    <h3>The world is a file, not the model's memory</h3>
+    <p>Write the starting game state — hp, location, inventory — to <code>game.json</code> and print it. The model is stateless; it re-reads the world through a tool every turn. This file, not the model, <em>is</em> the game.</p>
+    <p class="chunk-pointer">Starting state → <code>session7.py</code> · Warm-up</p>
   </div>
 
   <div class="chunks">
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">7A</span>
-        <span class="chunk-title">Written design</span>
-        <span class="chunk-time">20 min</span>
+        <span class="chunk-title">The world's tools</span>
+        <span class="chunk-time">30 min</span>
       </div>
       <div class="chunk-body">
-        <p>Commit your design to <code>DESIGN.md</code> before writing code — pattern, tools, where memory lives and its compression threshold, the limits, and what gets logged. Short is fine; it just needs to be <em>decided</em>.</p>
-        <p class="chunk-pointer">Design template &amp; tasks → <code>session7.py</code> · Chunk 7A</p>
+        <p>Build three tools — <code>get_state</code>, <code>roll_dice</code>, and <code>update_state</code> — plus <code>execute_tool</code>. The dice and every state change are computed by <em>your code</em>, so the model has to react to results it didn't choose.</p>
+        <p class="chunk-pointer">Tool schemas &amp; dispatcher → <code>session7.py</code> · Chunk 7A</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">7B</span>
-        <span class="chunk-title">Build it</span>
-        <span class="chunk-time">60 min</span>
+        <span class="chunk-title">The Dungeon Master loop</span>
+        <span class="chunk-time">45 min</span>
       </div>
       <div class="chunk-body">
-        <p>Implement the design against a required checklist: a real external tool, compression at a threshold, enforced step/token limits, a JSON log, and retry with backoff.</p>
-        <p class="chunk-pointer">Full checklist &amp; tasks → <code>session7.py</code> · Chunk 7B</p>
+        <p>Wire Claude as the DM and reuse your Session 4 <code>agent_loop</code>. An outer loop takes your typed action each turn; an inner agent loop calls tools on its own to resolve it. Add per-turn step limits, a token budget, JSON logging, and retry.</p>
+        <p class="chunk-pointer">System prompt &amp; loop → <code>session7.py</code> · Chunk 7B</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">7C</span>
-        <span class="chunk-title">Document it</span>
+        <span class="chunk-title">Rules the model can't break</span>
         <span class="chunk-time">25 min</span>
       </div>
       <div class="chunk-body">
-        <p>Write a one-page <code>ARCHITECTURE.md</code> and a <code>README.md</code> with setup steps. If you can say where a new fact-checking sub-agent would plug in without re-reading your code, you understand your own architecture.</p>
-        <p class="chunk-pointer">What to cover → <code>session7.py</code> · Chunk 7C</p>
+        <p>Put the load-bearing rules in code, not the prompt: your code decides win and lose after every turn and rejects impossible states — no phantom items, no overhealing. A prompt is a suggestion; code is law.</p>
+        <p class="chunk-pointer">Win/lose &amp; integrity → <code>session7.py</code> · Chunk 7C</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">7D</span>
-        <span class="chunk-title">Ship it</span>
-        <span class="chunk-time">15 min</span>
+        <span class="chunk-title">Play it, then ship it</span>
+        <span class="chunk-time">10 min</span>
       </div>
       <div class="chunk-body">
-        <p>Push to GitHub, tag <code>v1.0</code>, and write a 4-sentence retrospective. Then list every component you added since Session 1 — that list is what separates a chatbot from an agent, and you built all of it.</p>
-        <p class="chunk-pointer">Ship steps &amp; retro → <code>session7.py</code> · Chunk 7D</p>
+        <p>Play a full game — find the key, reach the exit, or die trying — confirm <code>game.log</code> shows the dice-then-state sequence, then tag <code>v1.0</code> and write a three-line retrospective.</p>
+        <p class="chunk-pointer">Checklist &amp; ship → <code>session7.py</code> · Chunk 7D</p>
       </div>
     </div>
   </div>
@@ -1109,7 +1109,7 @@ p code, li code {
       <button class="copy-btn" id="copy-btn-7" onclick="copyVerify(7, 'session7.py')">Copy prompt</button>
     </div>
     <button class="complete-btn" id="complete-btn-7" onclick="markComplete(7)">Mark session complete ✓</button>
-    <div class="complete-msg" id="complete-msg-7">Shipped. v1.0, tagged, documented. That's the full arc — from a five-line hello world to a real agent you designed yourself.</div>
+    <div class="complete-msg" id="complete-msg-7">Shipped. You built a game an agent runs by itself — looping, rolling, and reshaping a world it reads from a file. That's the full arc: from a five-line hello world to an agent that takes actions in a world your code governs.</div>
   </div>
 </section>
 
