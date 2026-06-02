@@ -184,11 +184,13 @@ tools = [
 messages = [
     {
         "role": "user",
-        "content": "Read the file 'does_not_exist.md', extract only the action items, and write them to 'actions.txt'.",
+        "content": "Read the file 'tasks.md', extract only the action items, and write them to 'actions.txt'.",
     }
 ]
 
+step = 0
 while True:
+    print(f"Step {step}: ~{sum(len(str(m)) for m in messages)//4} tokens in messages")
     r = client.messages.create(
         model=MODEL, max_tokens=1024, messages=messages, tools=tools
     )
@@ -217,3 +219,4 @@ while True:
                     ],
                 }
             )
+    step += 1

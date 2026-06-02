@@ -550,7 +550,7 @@ p code, li code {
       </div>
 
       <div class="modal-input-group">
-        <label class="modal-input-label">Brave Search API key <span style="color:var(--text-soft)">(optional, needed from Session 3)</span></label>
+        <label class="modal-input-label">Brave Search API key <span style="color:var(--text-soft)">(optional, needed from Session 4)</span></label>
         <input type="password" id="brave-key-input" class="learner-input" placeholder="BSA..." />
         <div class="modal-hint">Free tier — <a href="https://brave.com/search/api/" target="_blank">brave.com/search/api</a></div>
       </div>
@@ -773,14 +773,14 @@ p code, li code {
 
 <!-- ══════════════════════════════════════════════════════ SESSION 3 -->
 <section class="session" id="session-3">
-  <span class="session-label">Session 3 · ~2.5 hours</span>
+  <span class="session-label">Session 3 · ~2 hours</span>
   <h2>Context is Your Budget</h2>
-  <p class="session-theme">Hit the limits, then build instincts to manage them.</p>
+  <p class="session-theme">Your history grows every turn. Learn to compress it — and feel what that costs.</p>
 
   <div class="warmup">
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Watch the tokens climb</h3>
-    <p>Log <code>r.usage.input_tokens</code> at the top of each loop iteration and run a 15-step task. The number grows every step — even when nothing new happens. That's your context window filling up, and everything this session answers that problem.</p>
+    <p>Print the rough token count of your whole <code>messages</code> list at the top of each loop iteration and run a multi-step task. The number grows every step — even when nothing important happens. That's your context window filling up, and everything this session answers that problem.</p>
     <p class="chunk-pointer">Warm-up steps → <code>session3.py</code></p>
   </div>
 
@@ -788,11 +788,11 @@ p code, li code {
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">3A</span>
-        <span class="chunk-title">Wire a real search tool</span>
+        <span class="chunk-title">Summarize the old, keep the recent</span>
         <span class="chunk-time">25 min</span>
       </div>
       <div class="chunk-body">
-        <p>Swap your fake search for the real Brave Search API (free tier) so the agent can reach current knowledge. The wording of the tool description visibly changes how often the model reaches for it.</p>
+        <p>When history crosses a threshold, replace the oldest turns with a short summary and keep only the last few verbatim. Write <code>maybe_compress</code>, watch it fire, and measure the compression ratio — you're trading precision for space, on purpose.</p>
         <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session3.py</code> · Chunk 3A</p>
       </div>
     </div>
@@ -800,11 +800,11 @@ p code, li code {
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">3B</span>
-        <span class="chunk-title">Compression &amp; the cost of forgetting</span>
+        <span class="chunk-title">The cost of forgetting</span>
         <span class="chunk-time">30 min</span>
       </div>
       <div class="chunk-body">
-        <p>When history gets too large, summarize the oldest turns and drop them — trading precision for space. The cost is real: a fact seen early may be recalled, admitted-unknown, or confabulated later. There's no fix, only a design decision you make on purpose.</p>
+        <p>Compression isn't free. Plant a reference number in the first turn, run a loop until compression summarizes it away, then ask for it back. A fact seen early may be recalled, admitted-unknown, or confabulated — a deterministic experiment that makes the tradeoff visceral.</p>
         <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session3.py</code> · Chunk 3B</p>
       </div>
     </div>
@@ -816,7 +816,7 @@ p code, li code {
         <span class="chunk-time">15 min</span>
       </div>
       <div class="chunk-body">
-        <p>When a 10-step loop fails on step 7, a structured log is the only way to reconstruct why. Add it now, not later — every decision, tool call, and token count.</p>
+        <p>When an 18-step run misbehaves, the console scrollback is useless. Write one JSON object per line — every step and every compression event — so you can reconstruct exactly what happened later, with grep.</p>
         <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session3.py</code> · Chunk 3C</p>
       </div>
     </div>
@@ -825,7 +825,7 @@ p code, li code {
   <div class="project-card">
     <div class="project-tag">Mini Project · push to GitHub</div>
     <h4>Research agent with compression and logging</h4>
-    <p>Everything combined: Brave search, <code>write_file</code>, rolling compression, step/token budgets, and a JSON log — pointed at a real research task. Exact thresholds and checklist in your session file.</p>
+    <p>Everything combined: rolling compression before every call, step and token budgets, and a JSON log — pointed at a real research task that writes a 300-word summary to disk. Exact thresholds and checklist in your session file.</p>
     <p class="chunk-pointer">Full brief &amp; checklist → <code>session3.py</code> · Mini Project</p>
   </div>
 
