@@ -3,21 +3,29 @@ Session 4 — Architecture Patterns
 There are several ways to structure an agent. Each one wins in different situations.
 
 Each chunk is CONCEPT -> TODO -> CHALLENGE (see session1.py).
-Requires: BRAVE_SEARCH_API_KEY in your .env (auto-loaded, for the comparison task).
 Run with: python session4.py
+
+The big idea: all three patterns reuse ONE loop. Build it once (below), then each
+pattern is just a different system prompt + toolset. Stuck? See ../_answers/session4.py.
 """
 
 import env  # auto-loads .env — no manual `export` needed
 import anthropic
-import os
-import json
 
 client = anthropic.Anthropic()
 MODEL = "claude-haiku-4-5-20251001"
-BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 
-# TODO: reuse search + write_file (+ execute_tool and their schemas) from Session 3.
-# Copy them here or import them. All three patterns below share the same tools.
+# TODO: reuse search + write_file + execute_tool (and their schemas) from Session 2.
+# Copy them here. Keep the FAKE one-line search — no API key needed; the structural
+# lessons below show up no matter what the search returns.
+#
+# TODO: factor the Session 2 agent loop into ONE reusable function — this is the
+#   whole point of the session, so every pattern shares it:
+#     def agent_loop(messages, system, tools, max_steps=10) -> dict:
+#         # loop: create() -> append assistant -> run tool_use blocks -> repeat
+#         # until stop_reason != "tool_use" or max_steps; tally r.usage tokens.
+#         # return {"steps": ..., "tokens": ..., "answer": ...}
+#   ReAct, plan-execute, and the multi-agent sub-agent are all just calls to this.
 
 
 # ─── WARM-UP: Turn on Thought lines ──────────────────────────────────────────
@@ -33,9 +41,9 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 #   improve decisions AND gives you a trace to debug. But stated reasoning and the
 #   tool actually chosen don't always agree — that gap is worth seeing.
 #
-# TODO: implement run_react_agent(task, max_steps=10) -> dict using the warm-up
-#   system prompt. Log each step's Thought: line and the tool it then called.
-#   Return {"steps": steps, "tokens": total_tokens, "quality": "<your judgement>"}.
+# TODO: run_react_agent(task) — just call agent_loop with the warm-up system prompt
+#   ("...write a line starting with 'Thought:' before every tool call..."). Print each
+#   Thought: line as it streams. Add your own "quality" judgement to the result dict.
 #
 # CHALLENGE (write the answers in comments):
 #   Run this EXACT task: "Find the current population of Tokyo, then convert it to
@@ -49,11 +57,11 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 #   Two phases instead of one loop: first produce a plan, then execute it. Great
 #   for well-defined tasks; fragile when reality diverges from the plan mid-run.
 #
-# TODO: implement run_plan_execute_agent(task, max_steps=10) -> dict:
+# TODO: run_plan_execute_agent(task) — two phases:
 #   Phase 1 — one call, NO tools, system "Create a numbered step-by-step plan. Do
 #     not execute it. Be specific." Capture the plan text.
-#   Phase 2 — run the tool loop with system f"Execute this plan step by step:\n\n{plan}".
-#   Return {"steps","tokens","quality"}; seed tokens with the planning call's usage.
+#   Phase 2 — agent_loop with system f"Execute this plan step by step:\n\n{plan}".
+#   Add the planning call's usage to the loop's token count.
 #
 # CHALLENGE (write the answers in comments):
 #   Run this EXACT task, designed so step 3 depends on step 2's result:
@@ -70,10 +78,10 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 #   Session 2 loop. Key insight: each agent has its OWN context window, so the
 #   sub-agent's context stays short and focused — a feature, not a limitation.
 #
-# TODO: implement call_subagent(task) -> str — a self-contained loop (max 8 steps)
-#   that prints len(sub_messages) each step and returns the final answer.
-#   Define the call_subagent schema and implement run_multi_agent(task, max_steps=8)
-#   -> dict, feeding each sub-agent answer back to the orchestrator.
+# TODO: call_subagent(task) -> str — agent_loop on a FRESH messages list (its own
+#   context), returning the answer; print len(sub_messages) so you can see it stays
+#   short. Add call_subagent to execute_tool. Then run_multi_agent(task) is just
+#   agent_loop with the orchestrator system prompt and ONLY the call_subagent tool.
 #
 # CHALLENGE (write the answers in comments):
 #   Run this EXACT task: "Research three programming languages — Rust, Go, and

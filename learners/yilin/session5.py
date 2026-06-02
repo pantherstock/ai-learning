@@ -17,13 +17,13 @@ MODEL = "claude-haiku-4-5-20251001"
 
 # A small, fixed knowledge base so every query below is reproducible. Use these
 # EXACT five chunks for the tasks and challenges in this session:
-#   KB = [
-#     "Acme Corp was founded in 2019 in Austin by two former robotics engineers.",
-#     "Acme raised a $12M Series A led by Foundry Ventures in 2022.",
-#     "Maria Chen is Acme's CEO; she previously led hardware at a self-driving startup.",
-#     "James Wu is Acme's CTO and architected the company's core inference engine.",
-#     "Acme's flagship product is an on-device speech recognition SDK.",
-#   ]
+KB = [
+    "Acme Corp was founded in 2019 in Austin by two former robotics engineers.",
+    "Acme raised a $12M Series A led by Foundry Ventures in 2022.",
+    "Maria Chen is Acme's CEO; she previously led hardware at a self-driving startup.",
+    "James Wu is Acme's CTO and architected the company's core inference engine.",
+    "Acme's flagship product is an on-device speech recognition SDK.",
+]
 
 
 # ─── WARM-UP: Feel semantic similarity ───────────────────────────────────────
