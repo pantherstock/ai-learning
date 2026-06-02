@@ -251,6 +251,19 @@ li.done .nav-dot {
 .chunk-body p { margin-bottom: 10px; color: var(--text-mid); }
 .chunk-body p:last-child { margin-bottom: 0; }
 .chunk-body strong { color: var(--text); }
+.chunk-pointer {
+  font-size: 12.5px; color: var(--text-soft);
+  font-style: italic;
+  margin-top: 10px;
+}
+.chunk-pointer code {
+  font-style: normal;
+  background: var(--bg-card);
+  padding: 1px 6px; border-radius: 3px;
+  font-size: 12px; color: #8B3A10;
+  border: 1px solid var(--border);
+}
+.chunk-pointer::before { content: '↳ '; color: var(--amber); font-style: normal; }
 
 /* ── Observe callout ── */
 .observe {
@@ -572,58 +585,32 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 5 min</div>
     <h3>Establish your baseline</h3>
-    <p>In <code>caching.py</code>, the warm-up is already written: it makes 3 calls with a large system prompt and prints <code>cache_creation_input_tokens</code> and <code>cache_read_input_tokens</code> for each. Run it:</p>
-    <pre class="code-omitted"><code>Implement this in your caching.py — see the matching # TODO:</code></pre>
-    <p class="warmup-note">Run 1 creates the cache. Runs 2 and 3 read from it — much cheaper. Everything in this section is about maximizing how often you get run 2's numbers instead of run 1's.</p>
+    <p>Run the pre-written warm-up in <code>caching.py</code>: three calls with a large system prompt, printing the cache-creation and cache-read tokens for each. Run 1 creates the cache; runs 2–3 read it, far cheaper. This whole section is about getting run 2's numbers more often.</p>
+    <p class="chunk-pointer">Warm-up steps → <code>caching.py</code></p>
   </div>
 
   <div class="chunks">
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">A1</span>
-        <span class="chunk-title">Caching large documents</span>
-        <span class="chunk-time">20 min</span>
+        <span class="chunk-title">What &amp; where to cache</span>
+        <span class="chunk-time">30 min</span>
       </div>
       <div class="chunk-body">
-        <p>System prompts aren't the only thing worth caching. Large context documents — reference docs, codebases, knowledge bases — can be cached too. The rule: everything <em>before</em> <code>cache_control</code> in token order gets cached.</p>
-        <p><strong>Task:</strong> In Section A1 of <code>caching.py</code>, make 2 calls that include <code>REFERENCE_DOC</code> in the user messages with <code>cache_control</code> on the document block. Change only the question between calls. Measure how many tokens are cached vs regular on each run.</p>
-<pre class="code-omitted"><code>Implement this in your caching.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>On call 2, what percentage of input tokens came from the cache? What's the minimum document size where caching breaks even (write cost ≈ read savings)? The API docs say cache writes cost 1.25× regular input tokens.</p>
-        </div>
+        <p>System prompts aren't the only cacheable thing — large documents and tool definitions are too. <code>cache_control</code> is a watermark: everything before it in token order gets cached. Where you place it decides how much you save.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>caching.py</code> · Section A1</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">A2</span>
-        <span class="chunk-title">Cache placement</span>
-        <span class="chunk-time">15 min</span>
-      </div>
-      <div class="chunk-body">
-        <p><code>cache_control</code> is a watermark: everything before it (in token order) is cached. If you put it on a tool definition, the system prompt and all preceding tools are cached too.</p>
-        <p><strong>Task:</strong> Run two experiments from Section A2 of <code>caching.py</code>: (1) cache only the system prompt, (2) cache a tool definition. Compare which placement caches more tokens on a typical agent loop call.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>In an agent loop where the system prompt is 200 tokens and tool definitions are 300 tokens, which placement gives better cache utilization per API call? What's the right placement strategy for an agent that runs 20+ steps?</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="chunk">
-      <div class="chunk-header">
-        <span class="chunk-id">A3</span>
-        <span class="chunk-title">Agent loop caching</span>
+        <span class="chunk-title">Agent-loop caching</span>
         <span class="chunk-time">20 min</span>
       </div>
       <div class="chunk-body">
-        <p>In a multi-step loop, the system prompt and tool definitions are byte-for-byte identical on every iteration. Without caching, you pay for them on every call. With caching, after step 1 you only pay for the new messages.</p>
-        <p><strong>Task:</strong> In Section A3 of <code>caching.py</code>, run <code>run_agent_loop()</code> with <code>use_cache=False</code> and then with <code>use_cache=True</code>. Compare total input tokens and total cache-read tokens across all steps.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>After a 5-step loop, what % of total input tokens were served from cache? Now extrapolate to a 20-step loop. At what point does the cache payoff become significant?</p>
-        </div>
+        <p>In a multi-step loop the system prompt and tools are identical every iteration. With caching, after step 1 you only pay for the new messages — and the payoff compounds as the loop runs longer.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>caching.py</code> · Section A2</p>
       </div>
     </div>
   </div>
@@ -631,8 +618,8 @@ p code, li code {
   <div class="project-card">
     <div class="project-tag">Mini Project · push to GitHub</div>
     <h4>Cache-profiled research agent</h4>
-    <p>Take your <code>session3.py</code> research agent. Add <code>cache_control</code> at the right breakpoint. Run it cold (first time), then re-run within 5 minutes. Log per-step: <code>regular_tokens</code>, <code>cache_creation_tokens</code>, <code>cache_read_tokens</code>.</p>
-    <p>Calculate: total cost reduction from caching (cache reads cost ~10% of normal input price). What's the minimum number of agent steps where caching breaks even on the write cost?</p>
+    <p>Add <code>cache_control</code> to your Session 3 research agent at the right breakpoint, run it cold then warm, and log per-step regular / creation / read tokens to compute the real cost reduction. Exact method and checklist in your file.</p>
+    <p class="chunk-pointer">Full brief &amp; checklist → <code>caching.py</code> · Mini Project</p>
   </div>
 
   <div class="session-footer">
@@ -658,9 +645,8 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Add reflection in 3 lines</h3>
-    <p>Grab any response from a prior agent. Add a second call that reads the response and critiques it:</p>
-<pre class="code-omitted"><code>Implement this in your patterns.py — see the matching # TODO:</code></pre>
-    <p class="warmup-note">That's reflection. One extra call that makes the output substantially better. The rest of this section builds on this idea systematically.</p>
+    <p>Take any prior agent response and add one more call that critiques it. That's reflection — a single extra call that measurably improves output. The rest of this section builds on it.</p>
+    <p class="chunk-pointer">Warm-up steps → <code>patterns.py</code></p>
   </div>
 
   <div class="chunks">
@@ -671,12 +657,8 @@ p code, li code {
         <span class="chunk-time">20 min</span>
       </div>
       <div class="chunk-body">
-        <p>Draft → critique → revise, repeated until the model rates its own output as good or a max iteration count is hit. The stopping criterion prevents infinite loops.</p>
-        <p><strong>Task:</strong> Complete <code>reflection_loop()</code> in <code>patterns.py</code>. The critique phase must ask for a <code>good/needs-work</code> rating. If <code>good</code>, stop. If <code>needs-work</code>, send the critique to a revise call and update the draft.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>How often does the model say "good" on the first try vs after revisions? Run the same task 3 times. Is the number of revision cycles consistent? What does this tell you about when reflection is worth the extra token cost?</p>
-        </div>
+        <p>Draft → critique → revise, repeating until the model rates its own output "good" or hits a max-iteration cap. The stopping criterion is what keeps it from looping forever.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>patterns.py</code> · Section B1</p>
       </div>
     </div>
 
@@ -687,13 +669,8 @@ p code, li code {
         <span class="chunk-time">25 min</span>
       </div>
       <div class="chunk-body">
-        <p>Fork work to N independent subagents running in parallel. Each has its own context. Merge their results with a final synthesis call. Use <code>threading.Thread</code> — it's simpler than asyncio for this pattern.</p>
-        <p><strong>Task:</strong> Complete the parallel fan-out in Section B2 of <code>patterns.py</code>. Three threads run simultaneously, one per framework (Django, FastAPI, Flask). After all threads complete, merge results with one synthesis call.</p>
-<pre class="code-omitted"><code>Implement this in your patterns.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Time the fan-out run vs running the same three subtasks sequentially. What's the speedup? Is it exactly 3× — or more/less? What determines the ceiling on parallelism here?</p>
-        </div>
+        <p>Fork work to N independent subagents in parallel threads, each with its own context, then merge with one synthesis call. The real speedup is rarely exactly N×.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>patterns.py</code> · Section B2</p>
       </div>
     </div>
 
@@ -704,12 +681,8 @@ p code, li code {
         <span class="chunk-time">20 min</span>
       </div>
       <div class="chunk-body">
-        <p>A fast, cheap model classifies the user request and routes it to the right specialist. The router itself does no domain work — classification only.</p>
-        <p><strong>Task:</strong> Complete the specialist agents in Section B3 of <code>patterns.py</code> (<code>research_agent</code>, <code>code_agent</code>, <code>summarize_agent</code>). Then run <code>route()</code> on 8 diverse inputs and log which specialist was called.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Is there a category of input that gets misrouted consistently? What changes to the classifier system prompt fix it — and do those changes cause different misroutes elsewhere? This is the core challenge of router design.</p>
-        </div>
+        <p>A fast, cheap model classifies the request and routes it to a specialist — doing no domain work itself. The craft is fixing one category's misroutes without creating new ones elsewhere.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>patterns.py</code> · Section B3</p>
       </div>
     </div>
 
@@ -720,17 +693,13 @@ p code, li code {
         <span class="chunk-time">15 min</span>
       </div>
       <div class="chunk-body">
-        <p>The agent has an <code>ask_human(question)</code> tool. When it calls it, your code calls <code>input()</code> and returns the human's typed response as a <code>tool_result</code>. The agent then continues with that answer in context.</p>
-        <p><strong>Task:</strong> Complete the HITL agent loop in Section B4 of <code>patterns.py</code>. Test it with the task: <em>"Write a summary of machine learning to ml_summary.txt, but ask the human how detailed it should be before writing."</em></p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Does the agent ask the question before writing — or does it write anyway and treat the tool call as optional? What system prompt phrasing reliably causes it to pause vs proceed? This gap between description and behavior is a fundamental challenge in agentic systems.</p>
-        </div>
+        <p>An <code>ask_human(question)</code> tool pauses the loop for real <code>input()</code> and feeds the answer back as a <code>tool_result</code>. Getting it to reliably pause <em>before</em> acting is a prompt-phrasing problem.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>patterns.py</code> · Section B4</p>
       </div>
     </div>
   </div>
 
-  <p class="no-project">No mini project — the four pattern implementations in <code>patterns.py</code> are your deliverable. Keep the outputs: the reflection loop logs, the parallel timing comparison, the router misroute examples, and the HITL transcript.</p>
+  <p class="no-project">No mini project — the four pattern implementations in <code>patterns.py</code> are the deliverable, along with their outputs (reflection logs, fan-out timing, router misroutes, HITL transcript). <span class="chunk-pointer" style="display:inline">What to keep → <code>patterns.py</code></span></p>
 
   <div class="session-footer">
     <button class="verify-btn" id="verify-btn-b" onclick="toggleVerify('b')">Verify with Claude →</button>
@@ -755,8 +724,8 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Cost comparison in real numbers</h3>
-    <p>Run the warm-up in <code>skills.py</code>. It solves the same task two ways: a direct Python function (0 tokens, &lt;1ms) and a Claude subagent call (~50 tokens, ~1s). The numbers tell you the tradeoff immediately.</p>
-    <p class="warmup-note">Subagents cost tokens and latency on every single call. That's not a reason to never use them — it's a reason to only use them when you actually need language understanding.</p>
+    <p>The warm-up in <code>skills.py</code> solves one task two ways — a direct Python function (0 tokens, &lt;1ms) and a Claude subagent (~50 tokens, ~1s). The numbers make the tradeoff obvious: only spend a subagent when you actually need language understanding.</p>
+    <p class="chunk-pointer">Warm-up steps → <code>skills.py</code></p>
   </div>
 
   <div class="chunks">
@@ -767,44 +736,20 @@ p code, li code {
         <span class="chunk-time">15 min</span>
       </div>
       <div class="chunk-body">
-        <p>Four levels: <strong>tool</strong> (pure Python), <strong>skill module</strong> (reusable class wrapping tools), <strong>subagent</strong> (separate Claude call), <strong>independent agent</strong> (full autonomous loop).</p>
-        <p><strong>Task:</strong> Complete Section C1 in <code>skills.py</code> — categorize each capability in the list. For each, write a one-sentence justification. There are no trick answers — some genuinely sit on the boundary.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Which capabilities are genuinely ambiguous — where both tool and subagent could work? Write down the specific condition that tips you toward one or the other. That condition is your personal decision rule.</p>
-        </div>
+        <p>Four levels of capability: <strong>tool</strong> (pure Python), <strong>skill module</strong> (a class wrapping tools), <strong>subagent</strong> (a separate Claude call), and <strong>independent agent</strong> (a full loop). Some real capabilities genuinely sit on the boundary.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>skills.py</code> · Section C1</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">C2</span>
-        <span class="chunk-title">Skill modules</span>
-        <span class="chunk-time">20 min</span>
+        <span class="chunk-title">Skill modules &amp; specialization</span>
+        <span class="chunk-time">35 min</span>
       </div>
       <div class="chunk-body">
-        <p>A skill is a Python class that bundles related tools with their schemas and error handling. <code>SearchSkill</code> and <code>FileSkill</code> are already written in <code>skills.py</code>. Your job: implement <code>MemorySkill</code>.</p>
-        <p><strong>Task:</strong> Implement <code>MemorySkill</code> with a <code>tool_definition</code> property and <code>remember(fact)</code> / <code>recall_all()</code> methods. The skill stores facts in <code>self.facts</code> (a list). Test all three skills at the bottom of Section C2.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>What changes in your agent loop code when you switch from inline tool functions to skill classes? What's easier to test now — and what gets slightly more verbose? Is the tradeoff worth it at the scale of a session's codebase?</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="chunk">
-      <div class="chunk-header">
-        <span class="chunk-id">C3</span>
-        <span class="chunk-title">Subagent specialization</span>
-        <span class="chunk-time">20 min</span>
-      </div>
-      <div class="chunk-body">
-        <p><code>ResearcherAgent</code> (search + memory) and <code>WriterAgent</code> (file I/O only) are partially implemented. Giving each agent only the tools it needs keeps their context small and their behavior predictable.</p>
-        <p><strong>Task:</strong> Implement <code>MemorySkill</code> first (C2), then wire it into <code>ResearcherAgent</code>. Run a two-phase pipeline: researcher gathers facts, writer turns them into a document. Log context sizes at each step.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Compare context size: how many messages does the researcher accumulate vs the writer? If you'd used a single agent for both phases, how much larger would that context be? Does the split improve or hurt the final output quality?</p>
-        </div>
+        <p>A skill is a class bundling related tools, schemas, and error handling. Build <code>MemorySkill</code> alongside the provided <code>SearchSkill</code>/<code>FileSkill</code>, then give specialized agents only the skills they need so each one's context stays small.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>skills.py</code> · Section C2</p>
       </div>
     </div>
   </div>
@@ -812,8 +757,8 @@ p code, li code {
   <div class="project-card">
     <div class="project-tag">Mini Project · push to GitHub</div>
     <h4>Skill-based research agent</h4>
-    <p>Refactor <code>session3.py</code>: replace inline tool functions with <code>SearchSkill</code>, <code>FileSkill</code>, and <code>MemorySkill</code>. The agent loop itself should only know about skill interfaces, not implementation details.</p>
-    <p>Compare the before and after: how many lines did each change? Is the refactored version easier to swap out a skill in (e.g., replace <code>SearchSkill</code> with a different search provider)?</p>
+    <p>Refactor the Session 3 agent so the loop knows only skill interfaces — <code>SearchSkill</code>, <code>FileSkill</code>, <code>MemorySkill</code> — not implementations, then measure how much easier a skill is to swap. Exact before/after checklist in your file.</p>
+    <p class="chunk-pointer">Full brief &amp; checklist → <code>skills.py</code> · Mini Project</p>
   </div>
 
   <div class="session-footer">
@@ -839,10 +784,8 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Hello-world MCP server</h3>
-    <p>Install FastMCP: <code>pip install fastmcp</code>. Then run the test mode:</p>
-<pre class="code-omitted"><code>Implement this in your mcp.py — see the matching # TODO:</code></pre>
-    <p>You should see the <code>hello</code> tool, <code>write_file</code>, and <code>read_file</code> respond immediately — the server is running locally. The warm-up is pre-written. Your job from D1 onward is to extend it.</p>
-    <p class="warmup-note">Notice: the tools look identical to Session 2's tool definitions. MCP just standardizes how they're discovered and called — the functions themselves don't change.</p>
+    <p>Install FastMCP and run the pre-written server in test mode — <code>hello</code>, <code>write_file</code>, and <code>read_file</code> respond locally. The tools look just like Session 2's; MCP only standardizes how they're discovered and called.</p>
+    <p class="chunk-pointer">Warm-up steps → <code>mcp.py</code></p>
   </div>
 
   <div class="chunks">
@@ -853,44 +796,20 @@ p code, li code {
         <span class="chunk-time">20 min</span>
       </div>
       <div class="chunk-body">
-        <p>Tools in MCP are just decorated Python functions. <code>@mcp.tool()</code> exposes them in the protocol's JSON-RPC interface. Clients discover them automatically via a <code>tools/list</code> call.</p>
-        <p><strong>Task:</strong> Add a <code>word_count(text: str) -&gt; str</code> tool to <code>mcp.py</code> using <code>@mcp.tool()</code>. Run <code>python mcp.py --test</code> and confirm it works. Then connect the server to Claude Code as a local MCP server and call it from there.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>In Claude Code's tool list, how does your MCP tool's description and schema appear compared to how you defined it in Python? Is there anything that got lost or changed in translation — or is it exactly what you wrote?</p>
-        </div>
+        <p>MCP tools are decorated Python functions; <code>@mcp.tool()</code> exposes them over JSON-RPC and clients discover them automatically. You'll add one and call it live from Claude Code.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>mcp.py</code> · Section D1</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">D2</span>
-        <span class="chunk-title">Resources</span>
-        <span class="chunk-time">20 min</span>
+        <span class="chunk-title">Resources &amp; prompts</span>
+        <span class="chunk-time">30 min</span>
       </div>
       <div class="chunk-body">
-        <p>Resources are read-only endpoints — think of them as URLs the model can fetch. Your server already exposes the Acme KB chunks as resources. Add one more.</p>
-        <p><strong>Task:</strong> Add a <code>logs://agent/latest</code> resource to <code>mcp.py</code> that reads <code>agent.log</code> (from Session 3) if it exists, or returns <code>"No logs found."</code>. Test it with <code>python mcp.py --test</code>.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>When would you use a resource instead of a tool? The key difference: tools are actions (model calls them when it needs to do something), resources are data (model fetches context). Think of a case from Sessions 1–6 that would have been better modeled as a resource.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="chunk">
-      <div class="chunk-header">
-        <span class="chunk-id">D3</span>
-        <span class="chunk-title">Prompts</span>
-        <span class="chunk-time">15 min</span>
-      </div>
-      <div class="chunk-body">
-        <p>Prompts in MCP are reusable templates with parameters. Any client can list them and invoke them — you get consistent prompt engineering shared across tools and agents.</p>
-        <p><strong>Task:</strong> Add a <code>compare_options(a: str, b: str)</code> prompt to <code>mcp.py</code> using <code>@mcp.prompt()</code>. It should generate a structured comparison prompt for any two options. Test it in Claude Code by calling it through the MCP interface.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>If you have 3 agents that all need to do structured comparisons, what changes with MCP prompts vs inline strings? Think about what happens when you want to improve the prompt — how many files change in each approach?</p>
-        </div>
+        <p>Resources are read-only data the model fetches (vs. tools, which are actions); prompts are reusable parameterized templates any client can invoke. Both move shared context out of inline strings and into the server.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>mcp.py</code> · Section D2</p>
       </div>
     </div>
   </div>
@@ -898,8 +817,8 @@ p code, li code {
   <div class="project-card">
     <div class="project-tag">Mini Project · push to GitHub</div>
     <h4>RAG knowledge base as MCP server</h4>
-    <p>Complete the <code>retrieve_context</code> tool in <code>mcp.py</code> — it should do cosine similarity search over <code>KB_CHUNKS</code> (reuse your implementation from <code>session5.py</code>). Also expose each chunk as a <code>knowledge://acme/{id}</code> resource.</p>
-    <p>Then wire the MCP server into your Session 3 research agent. Replace the directly-called <code>retrieve_context</code> function with a call to your MCP server's tool. Compare: does the agent's behavior change? Is the code cleaner or messier?</p>
+    <p>Expose your Session 5 cosine search as an MCP <code>retrieve_context</code> tool plus per-chunk resources, then wire it into the Session 3 agent in place of the direct call. Exact steps and checklist in your file.</p>
+    <p class="chunk-pointer">Full brief &amp; checklist → <code>mcp.py</code> · Mini Project</p>
   </div>
 
   <div class="session-footer">

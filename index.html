@@ -222,6 +222,19 @@ li.done .nav-dot {
 .chunk-body p { margin-bottom: 10px; color: var(--text-mid); }
 .chunk-body p:last-child { margin-bottom: 0; }
 .chunk-body strong { color: var(--text); }
+.chunk-pointer {
+  font-size: 12.5px; color: var(--text-soft);
+  font-style: italic;
+  margin-top: 10px;
+}
+.chunk-pointer code {
+  font-style: normal;
+  background: var(--bg-card);
+  padding: 1px 6px; border-radius: 3px;
+  font-size: 12px; color: #8B3A10;
+  border: 1px solid var(--border);
+}
+.chunk-pointer::before { content: '↳ '; color: var(--amber); font-style: normal; }
 
 /* ── Observe callout ── */
 .observe {
@@ -623,93 +636,44 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 5 min</div>
     <h3>Make your first API call</h3>
-    <p>Your key is already in <code>.env</code> from the welcome setup, and <code>env.py</code> loads it automatically — no <code>export</code> needed. Just fill in the first <code># TODO:</code> in your <code>session1.py</code> and run it:</p>
-<pre class="code-omitted"><code>Implement this in your session1.py — see the matching # TODO:</code></pre>
-    <p class="warmup-note">That's the whole API in one call. Everything else in this plan is built on top of what you just ran.</p>
+    <p>Your key is already in <code>.env</code> and <code>env.py</code> auto-loads it. Fill in the warm-up <code># TODO:</code> in <code>session1.py</code> and run it — that's the whole API in one call.</p>
+    <p class="chunk-pointer">Warm-up steps → <code>session1.py</code></p>
   </div>
 
   <div class="chunks">
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">1A</span>
-        <span class="chunk-title">Reading the response</span>
-        <span class="chunk-time">20 min</span>
+        <span class="chunk-title">Read the response &amp; count tokens</span>
+        <span class="chunk-time">30 min</span>
       </div>
       <div class="chunk-body">
-        <p>The response object contains more than just the reply text. Explore it.</p>
-        <p><strong>Task:</strong> Print <code>response.content</code>, <code>response.stop_reason</code>, and <code>response.usage</code> separately. Then write a helper <code>extract(r)</code> that returns a clean dict from any response:</p>
-<pre class="code-omitted"><code>Implement this in your session1.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>What is <code>stop_reason</code> right now? Write down every value it could have — one of them will appear in Session 2 and change everything about how you read a response.</p>
-        </div>
+        <p>A response is more than reply text — it carries <code>stop_reason</code>, <code>usage</code>, and a content list. And cost, context limits, and speed are all measured in <strong>tokens</strong>, not words or characters.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session1.py</code> · Chunk 1A</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">1B</span>
-        <span class="chunk-title">Tokens aren't words</span>
-        <span class="chunk-time">15 min</span>
+        <span class="chunk-title">Statelessness — and the fix</span>
+        <span class="chunk-time">30 min</span>
       </div>
       <div class="chunk-body">
-        <p>Cost, context limits, and speed are all measured in tokens — not words or characters. Most people assume they're roughly the same. They're not.</p>
-        <p><strong>Task:</strong> Call the API with 5 inputs and log <code>usage.input_tokens</code> for each:</p>
-<pre class="code-omitted"><code>Implement this in your session1.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Which input has the most tokens per character? Which has the fewest? Is "antidisestablishmentarianism" more or fewer tokens than the emoji? The answer is probably not what you expect.</p>
-        </div>
+        <p>Every API call is independent — the model has no memory between calls. The fix is to resend the whole conversation each time: history lives in your code, not the API. Every "agent memory" technique is a workaround for this one fact.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session1.py</code> · Chunk 1B</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">1C</span>
-        <span class="chunk-title">Statelessness — break it</span>
-        <span class="chunk-time">20 min</span>
-      </div>
-      <div class="chunk-body">
-        <p>Every API call is fully independent. The model has no memory between calls. You're about to feel this directly.</p>
-        <p><strong>Task:</strong> Tell the model your name. Then, in a completely separate call, ask what your name is — but <em>don't</em> include the first exchange:</p>
-<pre class="code-omitted"><code>Implement this in your session1.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>What does it say? This is not a bug — it's the API's fundamental design. Every single solution to "agent memory" is a direct workaround for exactly this behavior. Remember this moment.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="chunk">
-      <div class="chunk-header">
-        <span class="chunk-id">1D</span>
-        <span class="chunk-title">Building history</span>
-        <span class="chunk-time">15 min</span>
-      </div>
-      <div class="chunk-body">
-        <p>The fix is simple: send every previous turn on every new call. The full conversation lives in your code, not in the API.</p>
-        <p><strong>Task:</strong> Maintain a <code>messages</code> list. After each call, append both the user message and assistant reply. Pass the full list each time. Run a 5-turn conversation:</p>
-<pre class="code-omitted"><code>Implement this in your session1.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Print <code>len(messages)</code> and <code>r.usage.input_tokens</code> each turn. What's the relationship between them? What would input_tokens look like after 50 turns? After 200?</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="chunk">
-      <div class="chunk-header">
-        <span class="chunk-id">1E</span>
         <span class="chunk-title">System prompt as a dial</span>
         <span class="chunk-time">15 min</span>
       </div>
       <div class="chunk-body">
-        <p>The system prompt is the highest-authority instruction in every API call. It shapes everything downstream.</p>
-        <p><strong>Task:</strong> Send the exact same user message — <em>"Explain what you are in one sentence."</em> — with three system prompts: none, <code>"You are a pirate."</code>, and <code>'You are a terse CLI tool. Reply only with valid JSON: {"answer": "..."}'</code>.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Which system prompt produces the most <em>consistently</em> formatted output across 3 separate runs? Why does output consistency matter more than output quality for an application?</p>
-        </div>
+        <p>The system prompt is the highest-authority instruction in every call. It shapes tone and format downstream — and for an application, consistency of format matters more than raw quality.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session1.py</code> · Chunk 1C</p>
       </div>
     </div>
   </div>
@@ -717,8 +681,8 @@ p code, li code {
   <div class="project-card">
     <div class="project-tag">Mini Project · push to GitHub</div>
     <h4>Chatbot class with token logging</h4>
-    <p>Build a <code>Chatbot</code> class with: an <code>__init__</code> that creates the client and an empty <code>history</code> list; a <code>chat(message)</code> method that appends, calls the API, logs input tokens, and returns text; and a <code>token_log</code> list you can inspect after the conversation.</p>
-    <p>Run 10 turns. Print the token log at the end. Push to GitHub. This class is the starting point for every session that follows.</p>
+    <p>Build a <code>Chatbot</code> class that keeps history, logs input tokens per turn, and runs a 10-turn conversation. It's the starting point for every session that follows.</p>
+    <p class="chunk-pointer">Full brief &amp; checklist → <code>session1.py</code> · Mini Project</p>
   </div>
 
   <div class="session-footer">
@@ -744,92 +708,44 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Define a tool — see what comes back</h3>
-    <p>Add a <code>tools</code> parameter to your API call with one tool defined, and ask the model to use it:</p>
-<pre class="code-omitted"><code>Implement this in your session2.py — see the matching # TODO:</code></pre>
-    <p class="warmup-note">Notice what's missing: an answer. The model didn't tell you the weather — it returned a request to call a function. It declared intent. That distinction is the whole session.</p>
+    <p>Add a <code>tools</code> parameter and ask the model to use it. Notice what's missing: an answer. The model returns a <em>request to call a function</em> — it declares intent. That distinction is the whole session.</p>
+    <p class="chunk-pointer">Warm-up steps → <code>session2.py</code></p>
   </div>
 
   <div class="chunks">
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">2A</span>
-        <span class="chunk-title">The tool_use block</span>
-        <span class="chunk-time">20 min</span>
+        <span class="chunk-title">tool_use → close the loop</span>
+        <span class="chunk-time">35 min</span>
       </div>
       <div class="chunk-body">
-        <p>Parse what the model returned. The content list holds a <code>ToolUseBlock</code>, not a text block.</p>
-        <p><strong>Task:</strong> Extract and print <code>block.id</code>, <code>block.name</code>, and <code>block.input</code> from the warm-up response:</p>
-<pre class="code-omitted"><code>Implement this in your session2.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Run a prompt that <em>doesn't</em> need a tool ("What's 2 + 2?") and compare <code>stop_reason</code>. What are the two values you see, and what does each mean?</p>
-        </div>
+        <p>The content list holds a <code>ToolUseBlock</code> with an <code>id</code>, <code>name</code>, and <code>input</code>. You run the function and report back with a matching <code>tool_result</code>. That cycle — tool_use → execute → tool_result — is the mechanical core of every agent ever built.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session2.py</code> · Chunk 2A</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">2B</span>
-        <span class="chunk-title">Closing the loop</span>
-        <span class="chunk-time">20 min</span>
+        <span class="chunk-title">The agent loop</span>
+        <span class="chunk-time">30 min</span>
       </div>
       <div class="chunk-body">
-        <p>The model asked you to call a function. Now call it (fake the result) and report back. The cycle — tool_use → execute → tool_result — is the mechanical core of every agent ever built.</p>
-        <p><strong>Task:</strong> Append the assistant's response, then append a <code>tool_result</code> message, then call again:</p>
-<pre class="code-omitted"><code>Implement this in your session2.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Change one character in <code>tool_use_id</code> and run it again. What error do you get? Why does the model need the ID to match — what would go wrong in a multi-tool response without it?</p>
-        </div>
+        <p>Wrap the tool cycle in a <code>while</code> loop that keeps running until the model signals it's done (<code>stop_reason == "end_turn"</code>). That repeating heartbeat is what turns a single call into an agent.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session2.py</code> · Chunk 2B</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">2C</span>
-        <span class="chunk-title">The agent loop</span>
+        <span class="chunk-title">Failure modes &amp; safety valves</span>
         <span class="chunk-time">25 min</span>
       </div>
       <div class="chunk-body">
-        <p>Wrap the tool cycle in a while loop. Keep running until the model signals it's done.</p>
-        <p><strong>Task:</strong> Give the model a fake <code>search(query)</code> and a real <code>write_file(filename, content)</code>. Ask it to find something and save it. Build the loop:</p>
-<pre class="code-omitted"><code>Implement this in your session2.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Give it a task that requires 3 tool calls. Log <code>stop_reason</code> on every iteration. Write down the exact sequence of values you see. This sequence is the heartbeat of every agent loop.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="chunk">
-      <div class="chunk-header">
-        <span class="chunk-id">2D</span>
-        <span class="chunk-title">Break it — always fail</span>
-        <span class="chunk-time">15 min</span>
-      </div>
-      <div class="chunk-body">
-        <p>Replace your <code>search</code> function with one that always returns an error. Run 5+ steps. Log everything.</p>
-<pre class="code-omitted"><code>Implement this in your session2.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Does the model loop forever, give up gracefully, ask for help, or fabricate a plausible-sounding result? Write down exactly what you see — this failure mode will appear in production and you need to recognize it.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="chunk">
-      <div class="chunk-header">
-        <span class="chunk-id">2E</span>
-        <span class="chunk-title">Safety valves</span>
-        <span class="chunk-time">15 min</span>
-      </div>
-      <div class="chunk-body">
-        <p>Add hard limits so the loop can't run forever or cost you an unexpected amount.</p>
-<pre class="code-omitted"><code>Implement this in your session2.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Design a task that should take many steps. Lower TOKEN_BUDGET to 5,000 and raise MAX_STEPS to 50. Which limit fires? Then reverse the values. What changes — and what does that tell you about the right defaults for different task types?</p>
-        </div>
+        <p>Make a tool always fail and watch how the model copes (give up? loop? fabricate?). Then add hard limits — <code>MAX_STEPS</code> and a token budget — so a loop can never run forever or surprise you on cost.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session2.py</code> · Chunk 2C</p>
       </div>
     </div>
   </div>
@@ -837,8 +753,8 @@ p code, li code {
   <div class="project-card">
     <div class="project-tag">Mini Project · push to GitHub</div>
     <h4>File agent with real tools</h4>
-    <p>Build an agent with two real tools: <code>read_file(path)</code> and <code>write_file(path, content)</code> using Python's built-in <code>open()</code>. Add max_steps and token budget. Give it this task: read a markdown file with bullet points, extract the action items, and write them to <code>actions.txt</code>.</p>
-    <p>Then pass a path that doesn't exist. What does the agent do when <code>read_file</code> raises <code>FileNotFoundError</code>? Handle it and log the result. Push to GitHub.</p>
+    <p>An agent with real <code>read_file</code> / <code>write_file</code> tools, step + token limits, and graceful <code>FileNotFoundError</code> handling. Exact task and checklist in your session file.</p>
+    <p class="chunk-pointer">Full brief &amp; checklist → <code>session2.py</code> · Mini Project</p>
   </div>
 
   <div class="session-footer">
@@ -864,9 +780,8 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Watch the tokens climb</h3>
-    <p>Take your agent from Session 2. Add one line at the start of each loop iteration before the API call:</p>
-<pre class="code-omitted"><code>Implement this in your session3.py — see the matching # TODO:</code></pre>
-    <p>Run a 15-step task. Save the output. Watch the number grow every single step — even when the task isn't doing anything new. That's your context window filling up. Everything in this session is a direct response to that problem.</p>
+    <p>Log <code>r.usage.input_tokens</code> at the top of each loop iteration and run a 15-step task. The number grows every step — even when nothing new happens. That's your context window filling up, and everything this session answers that problem.</p>
+    <p class="chunk-pointer">Warm-up steps → <code>session3.py</code></p>
   </div>
 
   <div class="chunks">
@@ -877,60 +792,32 @@ p code, li code {
         <span class="chunk-time">25 min</span>
       </div>
       <div class="chunk-body">
-        <p>Sign up for Brave Search API (free tier, no credit card). Replace your fake search with a real one:</p>
-<pre class="code-omitted"><code>Implement this in your session3.py — see the matching # TODO:</code></pre>
-        <p>Ask your agent something that requires current knowledge — a recent event, a price, today's date.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Change your tool description from <em>"Search the web"</em> to <em>"Search the web for real-time information not available in your training data."</em> Does the model call the tool more or less frequently on the same task? What changed — and what does that tell you about how tool descriptions work?</p>
-        </div>
+        <p>Swap your fake search for the real Brave Search API (free tier) so the agent can reach current knowledge. The wording of the tool description visibly changes how often the model reaches for it.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session3.py</code> · Chunk 3A</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">3B</span>
-        <span class="chunk-title">Rolling compression</span>
-        <span class="chunk-time">20 min</span>
+        <span class="chunk-title">Compression &amp; the cost of forgetting</span>
+        <span class="chunk-time">30 min</span>
       </div>
       <div class="chunk-body">
-        <p>When your message history gets too large, summarize the oldest turns and drop them. You trade precision for space.</p>
-<pre class="code-omitted"><code>Implement this in your session3.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Print the approximate token count before and after each compression event. What's the compression ratio? Run it on conversations with different content types — is the ratio consistent?</p>
-        </div>
+        <p>When history gets too large, summarize the oldest turns and drop them — trading precision for space. The cost is real: a fact seen early may be recalled, admitted-unknown, or confabulated later. There's no fix, only a design decision you make on purpose.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session3.py</code> · Chunk 3B</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">3C</span>
-        <span class="chunk-title">The cost of forgetting</span>
-        <span class="chunk-time">15 min</span>
-      </div>
-      <div class="chunk-body">
-        <p>This is the tradeoff made concrete. Run a 20-step task with compression enabled. In step 5, note a specific fact the agent encountered — a number, a name, a URL. Let compression run. Then in step 18, ask the agent directly about that fact.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Does the agent recall the fact correctly, admit it doesn't know, or confabulate something plausible but wrong? There's no fix — this is a design decision you live with. Understanding which behavior you'll get in each situation is what makes you a better architect.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="chunk">
-      <div class="chunk-header">
-        <span class="chunk-id">3D</span>
         <span class="chunk-title">Structured logging</span>
         <span class="chunk-time">15 min</span>
       </div>
       <div class="chunk-body">
-        <p>When a 10-step loop fails on step 7, logs are the only way to understand why. Add them now, not later.</p>
-<pre class="code-omitted"><code>Implement this in your session3.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>After a run that produces an unexpected result, open <code>agent.log</code>. Can you reconstruct exactly what happened — every decision, every tool call, every token count — from the log alone? If not, what's missing?</p>
-        </div>
+        <p>When a 10-step loop fails on step 7, a structured log is the only way to reconstruct why. Add it now, not later — every decision, tool call, and token count.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session3.py</code> · Chunk 3C</p>
       </div>
     </div>
   </div>
@@ -938,8 +825,8 @@ p code, li code {
   <div class="project-card">
     <div class="project-tag">Mini Project · push to GitHub</div>
     <h4>Research agent with compression and logging</h4>
-    <p>Combine everything: Brave search, <code>write_file</code>, rolling compression at 4,000 tokens, <code>max_steps=15</code>, <code>token_budget=50_000</code>, and a structured JSON log file.</p>
-    <p>Task: <em>"Research the history of reinforcement learning and write a 300-word summary to research.md."</em> After it runs, read the log file. Where did it waste tokens? Where did compression fire, and what did it lose? Push to GitHub.</p>
+    <p>Everything combined: Brave search, <code>write_file</code>, rolling compression, step/token budgets, and a JSON log — pointed at a real research task. Exact thresholds and checklist in your session file.</p>
+    <p class="chunk-pointer">Full brief &amp; checklist → <code>session3.py</code> · Mini Project</p>
   </div>
 
   <div class="session-footer">
@@ -965,9 +852,8 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Turn on Thought lines</h3>
-    <p>Add exactly one sentence to your system prompt:</p>
-<pre class="code-omitted"><code>Implement this in your session4.py — see the matching # TODO:</code></pre>
-    <p>Run any task from Session 3. Read the Thought lines out loud as they appear. Notice how the model's stated reasoning compares to the tool it actually picks next. This is the ReAct pattern — you just turned it on with one sentence.</p>
+    <p>Add one sentence to your system prompt asking the model to think out loud before each action, then run a Session 3 task. That single line is the ReAct pattern — watch its stated reasoning against the tool it actually picks.</p>
+    <p class="chunk-pointer">Warm-up steps → <code>session4.py</code></p>
   </div>
 
   <div class="chunks">
@@ -978,12 +864,8 @@ p code, li code {
         <span class="chunk-time">20 min</span>
       </div>
       <div class="chunk-body">
-        <p>ReAct stands for Reason + Act. The model reasons out loud before each action, which tends to produce better decisions — and gives you a trace to debug.</p>
-        <p><strong>Task:</strong> Build a proper ReAct agent. Enforce the <code>Thought:</code> format in your system prompt. Run a 5-step task with and without it. Log each tool choice and whether it was correct.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Find a <code>Thought:</code> line where the model's reasoning correctly identified what it needed — but then it called the wrong tool or used wrong arguments anyway. What gap exists between the stated reasoning and the actual action taken?</p>
-        </div>
+        <p>Reason + Act: the model states a <code>Thought:</code> before each action. Better decisions, plus a trace you can debug — though the stated reasoning and the chosen tool don't always match.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session4.py</code> · Chunk 4A</p>
       </div>
     </div>
 
@@ -994,51 +876,25 @@ p code, li code {
         <span class="chunk-time">25 min</span>
       </div>
       <div class="chunk-body">
-        <p>Two API calls instead of one loop: first produce a plan, then execute it. Good for well-defined tasks. Fragile when reality diverges from the plan.</p>
-<pre class="code-omitted"><code>Implement this in your session4.py — see the matching # TODO:</code></pre>
-        <p><strong>Break it:</strong> Design a task where step 3 depends on information only available from step 2's result. For example: "Find the most popular Python web framework. Then look up its latest version. Then check if that version has any known CVEs."</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>When mid-execution reality diverges from the plan, does the executor adapt, skip ahead, or proceed blindly and produce a wrong result? Log the exact step where it diverges and what it decides to do.</p>
-        </div>
+        <p>Plan first, then execute the steps. Great for well-defined tasks, fragile when reality diverges mid-run — which you'll deliberately trigger with a task whose later steps depend on earlier results.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session4.py</code> · Chunk 4B</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">4C</span>
-        <span class="chunk-title">Multi-agent — orchestrator and sub-agent</span>
+        <span class="chunk-title">Multi-agent — orchestrator &amp; sub-agent</span>
         <span class="chunk-time">30 min</span>
       </div>
       <div class="chunk-body">
-        <p>The orchestrator's only tool is <code>call_subagent(task)</code>. The sub-agent is your agent loop from Session 2. Each agent has its own independent context window — this is the key insight.</p>
-<pre class="code-omitted"><code>Implement this in your session4.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Log <code>len(messages)</code> for the orchestrator and for each sub-agent call separately. Why is the sub-agent's context always shorter? Why is that a feature rather than a limitation?</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="chunk">
-      <div class="chunk-header">
-        <span class="chunk-id">4D</span>
-        <span class="chunk-title">Compare all three patterns</span>
-        <span class="chunk-time">20 min</span>
-      </div>
-      <div class="chunk-body">
-        <p>Run the exact same task through all three patterns. Log steps taken, total tokens used, and your judgment of result quality.</p>
-        <p><strong>Task to use:</strong> <em>"Find 3 recent Python libraries for building REST APIs, compare their GitHub star counts, and write a brief recommendation to api-libraries.md."</em></p>
-<pre class="code-omitted"><code>Implement this in your session4.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Which pattern produces the most <em>consistent</em> step count across 3 runs of the same task? Which produces the highest quality result? Are they the same pattern — or does that tell you something about the tradeoff between reliability and quality?</p>
-        </div>
+        <p>An orchestrator whose only tool is <code>call_subagent(task)</code>, delegating to your Session 2 loop. The key insight: each agent gets its own independent context window, so sub-agent contexts stay short.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session4.py</code> · Chunk 4C</p>
       </div>
     </div>
   </div>
 
-  <p class="no-project">No mini project this session — your comparison table and logs are the deliverable. Keep them.</p>
+  <p class="no-project">No mini project — instead, run one fixed task through all three patterns and compare steps, tokens, and quality. The comparison table is your deliverable. <span class="chunk-pointer" style="display:inline">Exact task &amp; method → <code>session4.py</code> · Compare</span></p>
 
   <div class="session-footer">
     <button class="verify-btn" id="verify-btn-4" onclick="toggleVerify(4)">Verify with Claude →</button>
@@ -1063,60 +919,32 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Feel semantic similarity</h3>
-    <p>Install: <code>pip install sentence-transformers</code>. Then embed two sentences and compute their dot product:</p>
-<pre class="code-omitted"><code>Implement this in your session5.py — see the matching # TODO:</code></pre>
-    <p class="warmup-note">The difference between those two numbers is semantic similarity in action. Same idea, similar words, similar vector. Different topic, very different vector.</p>
+    <p>Install <code>sentence-transformers</code>, embed two sentences, and compare their similarity. Same idea → similar vectors; different topic → very different vectors. That gap is semantic search in action.</p>
+    <p class="chunk-pointer">Warm-up steps → <code>session5.py</code></p>
   </div>
 
   <div class="chunks">
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">5A</span>
-        <span class="chunk-title">Cosine similarity from scratch</span>
+        <span class="chunk-title">Cosine similarity &amp; semantic search</span>
         <span class="chunk-time">30 min</span>
       </div>
       <div class="chunk-body">
-        <p>The dot product alone isn't a reliable similarity score — longer vectors produce bigger dot products regardless of direction. Cosine similarity normalizes for vector magnitude.</p>
-        <p><strong>Task:</strong> Implement it yourself, no library:</p>
-<pre class="code-omitted"><code>Implement this in your session5.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Now search for <em>"What's the company's founding story?"</em> — does it return the same chunk? The words are completely different, but the meaning is the same. This is semantic search. Try to find a query that retrieves the wrong chunk, and understand why it matched.</p>
-        </div>
+        <p>A raw dot product favors longer vectors regardless of meaning; cosine similarity normalizes that out. Implement it yourself, then retrieve the right chunk for a query whose words don't appear in it — that's semantic search.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session5.py</code> · Chunk 5A</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">5B</span>
-        <span class="chunk-title">RAG as a tool</span>
-        <span class="chunk-time">25 min</span>
+        <span class="chunk-title">RAG as a tool — and its edges</span>
+        <span class="chunk-time">35 min</span>
       </div>
       <div class="chunk-body">
-        <p>Wire your retrieval function into your agent as a callable tool. The agent decides when to use it.</p>
-<pre class="code-omitted"><code>Implement this in your session5.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Ask something whose answer is clearly in the knowledge base. Now ask something not in it at all — something about a competitor or a topic the chunks don't cover. Does the agent say it doesn't know, search the web (if that tool is available), or make something up? What determined which behavior you got?</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="chunk">
-      <div class="chunk-header">
-        <span class="chunk-id">5C</span>
-        <span class="chunk-title">Push the edges</span>
-        <span class="chunk-time">15 min</span>
-      </div>
-      <div class="chunk-body">
-        <p><strong>Task:</strong> Run these three tests and log the retrieved chunk and similarity score for each:</p>
-        <p>1. Ask a question phrased very differently from how the answer is stored: <em>"How much money has Acme taken from investors?"</em></p>
-        <p>2. Ask something with no answer in the knowledge base: <em>"What is Acme's revenue?"</em></p>
-        <p>3. Ask something ambiguous that could match two chunks equally: <em>"Tell me about Acme's leadership."</em></p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>For test 3, which chunk wins? Read both the Maria Chen chunk and the James Wu chunk carefully. Why would the embeddings prefer one over the other for the word "leadership"? This reveals something subtle about how training data shapes similarity scores.</p>
-        </div>
+        <p>Wire retrieval in as a tool the agent chooses to call. Then push the edges: a paraphrased question, a question with no answer in the base, and an ambiguous one that two chunks match — and watch when it answers, declines, or makes something up.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session5.py</code> · Chunk 5B</p>
       </div>
     </div>
   </div>
@@ -1124,8 +952,8 @@ p code, li code {
   <div class="project-card">
     <div class="project-tag">Mini Project · push to GitHub</div>
     <h4>RAG wired into the research agent</h4>
-    <p>Add your <code>retrieve_context</code> tool to the research agent from Session 3. The agent now has two knowledge sources: web search (live, current) and the knowledge base (static, curated).</p>
-    <p>Run two tasks: one where the knowledge base and web search would return the same information; one where they'd return different or contradictory information. Which source does the agent prefer when both are available? Does the tool description influence that preference? Push to GitHub.</p>
+    <p>Give the Session 3 research agent two knowledge sources — live web search and a static knowledge base — then probe which one it trusts when they agree vs. conflict. Exact tasks and checklist in your session file.</p>
+    <p class="chunk-pointer">Full brief &amp; checklist → <code>session5.py</code> · Mini Project</p>
   </div>
 
   <div class="session-footer">
@@ -1151,9 +979,8 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Watch it die</h3>
-    <p>Wrap your API call in a function that raises an error on the first attempt:</p>
-<pre class="code-omitted"><code>Implement this in your session6.py — see the matching # TODO:</code></pre>
-    <p class="warmup-note">Run your agent. It crashes on the first failed call with no recovery. That's your current production reliability. This session is the fix.</p>
+    <p>Wrap your API call so the first attempt raises an error, then run the agent. It crashes with no recovery — that's your current production reliability. This session is the fix.</p>
+    <p class="chunk-pointer">Warm-up steps → <code>session6.py</code></p>
   </div>
 
   <div class="chunks">
@@ -1164,30 +991,20 @@ p code, li code {
         <span class="chunk-time">20 min</span>
       </div>
       <div class="chunk-body">
-        <p>Transient errors (rate limits, timeouts, 5xx) are worth retrying. Permanent errors (bad API key, malformed request) are not. Know the difference.</p>
-<pre class="code-omitted"><code>Implement this in your session6.py — see the matching # TODO:</code></pre>
-        <p>Simulate failures using your <code>fragile_api_call</code> wrapper. Test at 10%, 30%, and 50% failure rates.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>At what simulated failure rate does your agent still succeed most of the time with 3 retries? At what rate does it become unreliable? What does this tell you about how much production error budget you actually have?</p>
-        </div>
+        <p>Retry transient errors (rate limits, timeouts, 5xx); don't retry permanent ones (bad key, malformed request). Simulating failure rates shows exactly how much error budget retries actually buy you.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session6.py</code> · Chunk 6A</p>
       </div>
     </div>
 
     <div class="chunk">
       <div class="chunk-header">
         <span class="chunk-id">6B</span>
-        <span class="chunk-title">Streaming</span>
-        <span class="chunk-time">15 min</span>
+        <span class="chunk-title">Streaming &amp; structured output</span>
+        <span class="chunk-time">30 min</span>
       </div>
       <div class="chunk-body">
-        <p>Tokens arrive as they're generated. Total time is similar — perceived responsiveness is dramatically better.</p>
-<pre class="code-omitted"><code>Implement this in your session6.py — see the matching # TODO:</code></pre>
-        <p>Run the same prompt with and without streaming, timing both with <code>time.time()</code>.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>In the stream, at what point can you tell the model is about to make a tool call — before the result arrives? Can you print <em>"🔧 Calling search tool..."</em> to the user the moment the intent is clear? What would you need to detect in the stream to do this?</p>
-        </div>
+        <p>Streaming delivers tokens as they're generated — same total time, far better perceived responsiveness. Pair it with a required JSON summary and a self-correction retry when the model doesn't comply.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session6.py</code> · Chunk 6B</p>
       </div>
     </div>
 
@@ -1198,34 +1015,13 @@ p code, li code {
         <span class="chunk-time">20 min</span>
       </div>
       <div class="chunk-body">
-        <p>Your system prompt and tool definitions are byte-for-byte identical on every API call. You're paying full price for them every time. Caching cuts that cost to ~10%.</p>
-<pre class="code-omitted"><code>Implement this in your session6.py — see the matching # TODO:</code></pre>
-        <p>Run the same agent task twice. Compare token costs between run 1 and run 2.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>What percentage of your total input tokens are cache hits on the second run? Calculate the cost difference — cached tokens cost ~10× less than regular input tokens. What's the minimum system prompt length where caching starts to matter meaningfully?</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="chunk">
-      <div class="chunk-header">
-        <span class="chunk-id">6D</span>
-        <span class="chunk-title">Structured output and self-correction</span>
-        <span class="chunk-time">15 min</span>
-      </div>
-      <div class="chunk-body">
-        <p>Ask the model to always end with a JSON summary. If it doesn't, send a correction and let it retry.</p>
-<pre class="code-omitted"><code>Implement this in your session6.py — see the matching # TODO:</code></pre>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Run 5 trials without explicit format instructions, then 5 trials with them. How often does the model include the JSON correctly in each case? Does the self-correction retry always succeed, or can it fail too?</p>
-        </div>
+        <p>Your system prompt and tool definitions are identical on every call, yet you pay full price each time. Caching cuts that to ~10% — run the same task twice and measure the cache hits on run 2.</p>
+        <p class="chunk-pointer">Walkthrough &amp; tasks → <code>session6.py</code> · Chunk 6C</p>
       </div>
     </div>
   </div>
 
-  <p class="no-project">No mini project this session — your before/after measurements are the deliverable. Log the numbers: retry recovery rate, cache hit percentage, malformed output rate before and after format instructions.</p>
+  <p class="no-project">No mini project — your before/after numbers are the deliverable: retry recovery rate, cache-hit percentage, and malformed-output rate with and without format instructions. <span class="chunk-pointer" style="display:inline">What to log → <code>session6.py</code></span></p>
 
   <div class="session-footer">
     <button class="verify-btn" id="verify-btn-6" onclick="toggleVerify(6)">Verify with Claude →</button>
@@ -1250,13 +1046,8 @@ p code, li code {
   <div class="warmup">
     <div class="warmup-tag">Quick win · 10 min</div>
     <h3>Design before you code</h3>
-    <p>Before opening your editor, open a text file (or grab paper). Write answers to these five questions — actual answers, not "TBD":</p>
-    <p>1. Which architecture pattern from Session 4?<br>
-    2. What external tools does it need?<br>
-    3. Where does memory live — in-context, rolling summary, or vector store?<br>
-    4. What are the three most likely failure modes?<br>
-    5. What gets logged, and what would you look at first in a failed run?</p>
-    <p class="warmup-note">If you can't answer all five in 10 minutes, the design isn't ready. That's not a failure — that's the warm-up doing its job.</p>
+    <p>Before opening your editor, answer five concrete design questions in writing — pattern, tools, where memory lives, likely failure modes, what you'd log. If you can't answer all five in 10 minutes, the design isn't ready yet.</p>
+    <p class="chunk-pointer">The five questions → <code>session7.py</code> · Warm-up</p>
   </div>
 
   <div class="chunks">
@@ -1267,12 +1058,8 @@ p code, li code {
         <span class="chunk-time">20 min</span>
       </div>
       <div class="chunk-body">
-        <p>Save your design to <code>DESIGN.md</code> before you write any code. It doesn't need to be long — it needs to be decided.</p>
-        <p>Cover: which pattern and why you chose it over the others; which tools are needed and whether any are stateful; where memory lives and at what token threshold compression fires; the max_steps and token budget limits; what events get logged.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>What was the hardest design decision? Write down the tradeoff explicitly — what you chose and what you gave up. That tradeoff is a learning outcome, not just an implementation detail.</p>
-        </div>
+        <p>Commit your design to <code>DESIGN.md</code> before writing code — pattern, tools, where memory lives and its compression threshold, the limits, and what gets logged. Short is fine; it just needs to be <em>decided</em>.</p>
+        <p class="chunk-pointer">Design template &amp; tasks → <code>session7.py</code> · Chunk 7A</p>
       </div>
     </div>
 
@@ -1283,16 +1070,8 @@ p code, li code {
         <span class="chunk-time">60 min</span>
       </div>
       <div class="chunk-body">
-        <p>Implement your design. Required checklist:</p>
-        <p>☐ At least one real external tool (not faked)<br>
-        ☐ Context compression at a defined threshold<br>
-        ☐ max_steps and token budget enforced<br>
-        ☐ Structured JSON log file<br>
-        ☐ Retry with exponential backoff on API calls</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>You will hit at least one decision mid-build that wasn't in your design. Write it down when it happens. Those surprises — the things the design didn't anticipate — are the real output of this chunk.</p>
-        </div>
+        <p>Implement the design against a required checklist: a real external tool, compression at a threshold, enforced step/token limits, a JSON log, and retry with backoff.</p>
+        <p class="chunk-pointer">Full checklist &amp; tasks → <code>session7.py</code> · Chunk 7B</p>
       </div>
     </div>
 
@@ -1303,12 +1082,8 @@ p code, li code {
         <span class="chunk-time">25 min</span>
       </div>
       <div class="chunk-body">
-        <p>Write two documents: a one-page <code>ARCHITECTURE.md</code> and a <code>README.md</code> with setup instructions.</p>
-        <p>The architecture doc covers: which pattern and why, where memory lives, how compression works, the failure modes you designed for, and one thing you'd do differently if rebuilding from scratch.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Answer this in 30 seconds: if someone asked you to add a fact-checking sub-agent to your system — where would it plug in? If you can answer immediately without re-reading your code, you understand your own architecture.</p>
-        </div>
+        <p>Write a one-page <code>ARCHITECTURE.md</code> and a <code>README.md</code> with setup steps. If you can say where a new fact-checking sub-agent would plug in without re-reading your code, you understand your own architecture.</p>
+        <p class="chunk-pointer">What to cover → <code>session7.py</code> · Chunk 7C</p>
       </div>
     </div>
 
@@ -1319,13 +1094,8 @@ p code, li code {
         <span class="chunk-time">15 min</span>
       </div>
       <div class="chunk-body">
-        <p><strong>Task:</strong> Push to GitHub. Tag the release <code>v1.0</code>:</p>
-<pre class="code-omitted"><code>Implement this in your session7.py — see the matching # TODO:</code></pre>
-        <p>Write a short retrospective — 4 sentences or so: what clicked, what surprised you, what you'd do differently, and one thing you want to learn next.</p>
-        <div class="observe">
-          <div class="observe-label">Observe this</div>
-          <p>Look at your Session 1 chatbot and your Session 7 agent side by side. List every component you added between the two. That list — history management, tool loop, max_steps, token budget, compression, logging, retry logic, RAG, architecture pattern, documentation — is what separates a chatbot from an agent. You built all of it.</p>
-        </div>
+        <p>Push to GitHub, tag <code>v1.0</code>, and write a 4-sentence retrospective. Then list every component you added since Session 1 — that list is what separates a chatbot from an agent, and you built all of it.</p>
+        <p class="chunk-pointer">Ship steps &amp; retro → <code>session7.py</code> · Chunk 7D</p>
       </div>
     </div>
   </div>

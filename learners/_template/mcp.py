@@ -3,40 +3,32 @@ Section D — Plugins & MCP (Model Context Protocol)
 MCP is the standard protocol for connecting tools and data sources to Claude.
 Build a server that exposes your tools as MCP capabilities.
 
+Each section is CONCEPT -> TODO -> CHALLENGE (see session1.py).
 Prerequisites: pip install fastmcp   (install separately from the main deps)
-Run the server: python mcp.py
+Run the server: python mcp.py   |   Test the tools: python mcp.py --test
 """
 
 import env  # auto-loads .env — no manual `export` needed
 
-# ─── What is MCP? ─────────────────────────────────────────────────────────────
+# ─── What is MCP? ────────────────────────────────────────────────────────────
+# An open standard for connecting AI models to tools and data. Instead of wiring
+# tools into your agent code, you run an MCP server that exposes them — and any
+# MCP-aware client (Claude Code, Claude Desktop, your own agent) can use them.
 #
-# MCP (Model Context Protocol) is an open standard for connecting AI models
-# to tools and data. Instead of wiring tools directly into your agent code,
-# you build an MCP server that exposes them — then any MCP-aware client
-# (Claude Code, Claude Desktop, your own agent) can use them.
+#   MCP Client  <->  JSON-RPC (stdio/HTTP)  <->  MCP Server (your code)  <->  tools/data
 #
-# Architecture:
-#   MCP Client (Claude Code, your agent)
-#       ↕  JSON-RPC over stdio or HTTP
-#   MCP Server (your Python code)
-#       ↕
-#   Your tools / databases / APIs
-#
-# Three things an MCP server can expose:
-#   - Tools:     functions the model can call (like tool_use in the API)
-#   - Resources: data the model can read (files, DB rows, API responses)
-#   - Prompts:   reusable prompt templates with arguments
-#
-# FastMCP is a Python library that handles the protocol for you.
-# You just write decorated functions.
+# A server can expose three things:
+#   Tools:     functions the model can CALL (like tool_use in the API)
+#   Resources: data the model can READ by URI (files, DB rows, API responses)
+#   Prompts:   reusable prompt templates with arguments
+# FastMCP handles the protocol; you just write decorated functions.
 
 import os
 import json
 
 BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 
-# TODO: create the server. Wrap the import so a missing dep prints a friendly hint:
+# TODO: create the server, wrapping the import with a friendly hint:
 #   try:
 #       from fastmcp import FastMCP
 #   except ImportError:
@@ -45,73 +37,69 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 
 
 # ─── WARM-UP: Hello-world MCP server ─────────────────────────────────────────
-# Run this file and connect to it from Claude Code (run /mcp and add a local
-# server pointing here), or test it programmatically with mcp.Client.
-#
-# TODO: define a hello(name) -> str tool with the @mcp.tool() decorator that
-# returns a greeting confirming the server is running.
+# TODO: define a hello(name: str) -> str tool with @mcp.tool() that returns a
+# greeting confirming the server is up. Run `python mcp.py --test` (or connect from
+# Claude Code via /mcp) and call it. Note: the tool looks just like a Session 2 tool
+# schema — MCP only standardizes how it's discovered and called.
 
 
 # ─── SECTION D1: Expose tools via MCP ────────────────────────────────────────
-# Same tools as your agent loops, now exposed as MCP. Any Claude client can
-# discover and call these automatically.
+# CONCEPT
+#   MCP tools are decorated Python functions. @mcp.tool() publishes them over
+#   JSON-RPC; clients discover them automatically via a tools/list call. No schema
+#   hand-writing — FastMCP derives it from your type hints + docstring.
 #
-# TODO: expose search_web(query), write_file(path, content), and read_file(path)
-# as @mcp.tool() functions (reuse the logic from earlier sessions; search_web can
-# fall back to fake results when BRAVE_KEY is unset).
-# TODO: add a word_count tool that takes text and returns the word count.
-
-
-# ─── SECTION D2: Resources — expose data for the model to read ───────────────
-# Resources are like read-only endpoints. The model can request them by URI.
-# Use them for context that changes over time (current state, docs, DB records).
+# TODO: expose search_web(query), write_file(path, content), and read_file(path) as
+#   @mcp.tool() functions (reuse earlier logic; search_web falls back to fake
+#   results when BRAVE_KEY is unset). Add word_count(text: str) -> str.
+#   Run `python mcp.py --test` to confirm they work, then call word_count from
+#   Claude Code on the EXACT input "the quick brown fox jumps over the lazy dog".
 #
-# TODO: define the Acme knowledge base as a dict and expose it as resources:
-#   @mcp.resource("knowledge://acme/{chunk_id}")  -> one chunk by id
-#   @mcp.resource("knowledge://acme/all")         -> the whole KB joined
-# TODO: add a resource "logs://agent/latest" that returns agent.log if it exists,
-# else "No logs found."
+# CHALLENGE (write the answers in comments):
+#   In Claude Code's tool list, how do your tool's name, description, and schema
+#   appear compared to what you wrote in Python? Did anything get lost or renamed in
+#   translation, or is it exactly your docstring + type hints?
 
 
-# ─── SECTION D3: Prompts — reusable templates ─────────────────────────────────
-# Prompts are predefined instructions with parameters. Claude clients can list
-# them and invoke them by name.
+# ─── SECTION D2: Resources & prompts ─────────────────────────────────────────
+# CONCEPT
+#   Resources are read-only DATA the model fetches by URI (vs tools, which are
+#   ACTIONS). Prompts are reusable parameterized TEMPLATES any client can invoke.
+#   Both pull shared context out of inline strings and into the server, so improving
+#   one place updates every agent that uses it.
 #
-# TODO: define reusable @mcp.prompt() templates:
-#   research_report(topic, word_count=300) — research + write-to-file instruction
-#   code_review(language="Python")          — a code-review system prompt
-#   compare_options(a, b)                   — a structured comparison prompt
+# TODO (a) — resources:
+#   Define the Acme KB as a dict and expose:
+#       @mcp.resource("knowledge://acme/{chunk_id}")  -> one chunk by id
+#       @mcp.resource("knowledge://acme/all")         -> the whole KB joined
+#   Add @mcp.resource("logs://agent/latest") returning agent.log (Session 3) if it
+#   exists, else "No logs found."
+# TODO (b) — prompts:
+#   Add @mcp.prompt() templates:
+#       compare_options(a: str, b: str)        -> a structured comparison prompt
+#       research_report(topic, word_count=300) -> research + write-to-file instruction
+#   Test compare_options through Claude Code's MCP interface.
+#
+# CHALLENGE (write the answers in comments):
+#   1. Name one thing from Sessions 1-6 that would have been better modeled as a
+#      RESOURCE (data) than a tool (action), and why.
+#   2. If THREE agents all need a structured comparison, how many files change to
+#      improve the prompt when it's an MCP prompt vs an inline string in each agent?
 
 
-# ─── OBSERVE: What changed? ───────────────────────────────────────────────────
-# Before MCP: your tools were wired directly into your agent loop.
-#   - Adding a new tool meant editing agent code.
-#   - Tools couldn't be shared across different agents or clients.
-#   - Tool logic was tangled with loop logic.
+# ─── MINI PROJECT: RAG knowledge base as MCP server ──────────────────────────
+# Push to GitHub when the checklist passes.
 #
-# After MCP: your tools live in a server.
-#   - Any MCP client can discover and use them.
-#   - Claude Code, Claude Desktop, and your agents all share the same toolset.
-#   - You can update tools without touching agent code.
+#   ☐ retrieve_context(query) @mcp.tool() does cosine-similarity search over the KB
+#     (reuse cosine_similarity from session5.py).
+#   ☐ Each KB chunk exposed as a resource: knowledge://acme/{id}.
+#   ☐ A __main__ block: mcp.run() as a server, plus a `--test` branch that calls the
+#     tools directly (hello, write_file, read_file, retrieve_context).
+#   ☐ Wire this server into your Session 3 research agent so it calls retrieve_context
+#     via MCP instead of a directly-wired Python function.
 #
-# The tradeoff: MCP adds a network hop (stdio or HTTP). For local tools, this is
-# negligible. For high-frequency calls in tight loops, measure first.
+# Done when: retrieve_context returns the right chunks via MCP, AND the Session 3
+#   agent works through the server. Note whether the agent's behavior changed and
+#   whether the code got cleaner or messier.
 #
-# OBSERVATION: take one of your agent loops from sessions 2–4 and imagine
-# replacing its tool execution with MCP calls. What changes in the code?
-# What stays the same? Write your answer here:
-
-
-# ─── MINI PROJECT: RAG knowledge base as MCP server ─────────────────────────
-# Expose the Session 5 knowledge base as a real MCP server with:
-#   - A retrieve_context tool that does cosine-similarity search
-#   - A resource for each KB chunk (URI: knowledge://acme/{id})
-#   - A research_report prompt
-# Then connect it to your Session 3 research agent so the agent calls
-# retrieve_context via the MCP tool rather than a directly-wired Python function.
-# Push to GitHub when done.
-#
-# TODO: add a retrieve_context(query) @mcp.tool() that imports cosine_similarity
-# from session5.py (or re-implements it) and returns the top 2 matching chunks.
-# TODO: add a __main__ block — run mcp.run() as a server, or a --test branch that
-# calls the tools directly (hello, write_file, read_file, get_all_kb).
+# TODO: implement retrieve_context, the resources, and the __main__/--test block.

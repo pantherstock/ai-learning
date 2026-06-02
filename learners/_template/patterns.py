@@ -1,7 +1,8 @@
 """
 Section B — Advanced Agentic Patterns
-Four patterns that go beyond the basics in Session 4: reflection, parallel fan-out, routing, human-in-the-loop.
+Four patterns beyond Session 4: reflection, parallel fan-out, routing, human-in-the-loop.
 
+Each section is CONCEPT -> TODO -> CHALLENGE (see session1.py).
 Prerequisites: complete Session 4 first.
 Run with: python patterns.py
 """
@@ -9,9 +10,11 @@ Run with: python patterns.py
 import env  # auto-loads .env — no manual `export` needed
 import anthropic
 import threading
+import time
 import os
 
 client = anthropic.Anthropic()
+MODEL = "claude-haiku-4-5-20251001"
 BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 
 # TODO: bring forward search(query) from Session 3/4 (with the BRAVE_KEY fallback)
@@ -19,60 +22,90 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 
 
 # ─── WARM-UP: Reflection in 3 lines ──────────────────────────────────────────
-# Add a self-critique pass to any prior agent's output. The model reads its own
-# response and identifies what could be improved.
-#
-# TODO: make one call to get a first_answer (e.g. "Explain what an API is in one
-# sentence."), then a second call showing first_answer and asking
-# "Critique this explanation in one sentence. What's imprecise or misleading?"
-# Print both.
+# TODO: make one call to get first_answer for "Explain what an API is in one
+# sentence.", then a second call showing that answer and asking: "Critique this
+# explanation in one sentence. What's imprecise or misleading?" Print both. One
+# extra call already makes the output better — that's the whole idea of reflection.
 
 
 # ─── SECTION B1: Reflection loop ─────────────────────────────────────────────
-# Systematic draft → critique → revise cycle. Stop when the model rates its own
-# output as "good" or after N iterations — whichever comes first.
+# CONCEPT
+#   Draft -> critique -> revise, repeating until the model rates its own output
+#   "good" or a max-iteration cap is hit. The stopping criterion is what keeps it
+#   from looping forever.
 #
 # TODO: implement reflection_loop(task, max_iterations=3) -> str:
 #   - draft an answer
-#   - each iteration: ask the model to rate it good/needs-work ("If needs-work,
-#     explain what's wrong in one sentence. If good, say DONE."). If "DONE", break;
-#     otherwise ask it to rewrite the draft addressing the critique.
+#   - each iteration: ask the model to rate it. Use this EXACT rubric in the prompt:
+#       "Rate the draft. If it is good, reply exactly DONE. Otherwise reply
+#        NEEDS-WORK: <one sentence on what's wrong>."
+#     If it replies DONE, break; else ask it to rewrite addressing the critique.
 #   - print whether each iteration continued or stopped; return the final draft.
+#
+# CHALLENGE (write the answers in comments):
+#   Run reflection_loop on this EXACT task 3 times: "Write a 2-sentence product
+#   description for a waterproof hiking backpack." How many iterations until DONE
+#   each time? Is it consistent? When is the extra token cost of reflection worth it?
 
 
 # ─── SECTION B2: Parallel fan-out ────────────────────────────────────────────
-# Fork work to multiple independent subagents running in parallel. Each has its
-# own context window. Merge their results afterwards. Use threading.Thread —
-# simpler than asyncio here.
+# CONCEPT
+#   Fork work to N independent subagents in parallel threads — each with its own
+#   context — then merge with one synthesis call. threading.Thread is simpler than
+#   asyncio here. The speedup is rarely exactly Nx.
 #
-# TODO: implement run_subagent(subtask, results, key) (a simple agent loop, max 5
-# steps, storing the answer in results[key]). Decompose a task like
-# "Compare Django vs FastAPI vs Flask for building a REST API" into independent
-# subtasks, run them in parallel threads, join them, then make one synthesis call
-# that merges the results into a comparison.
+# TODO: implement run_subagent(subtask, results, key) — a small loop (max 5 steps)
+#   storing its answer in results[key]. Use these EXACT three subtasks, one per
+#   thread: "Summarize Django for REST APIs", "Summarize FastAPI for REST APIs",
+#   "Summarize Flask for REST APIs". Join the threads, then make ONE synthesis call
+#   that merges results into a comparison.
+#
+# CHALLENGE (write the answers in comments):
+#   Time the parallel run, then run the SAME three subtasks sequentially and time
+#   that. What's the speedup — exactly 3x, less, or more? What caps it (think about
+#   the synthesis call and per-call latency)?
 
 
 # ─── SECTION B3: Router pattern ──────────────────────────────────────────────
-# A fast, cheap classifier reads the user request and decides which specialist
-# agent handles it. The router itself does no domain work.
+# CONCEPT
+#   A fast, cheap classifier reads the request and routes it to a specialist. The
+#   router does NO domain work — classification only. The craft is fixing one
+#   category's misroutes without creating new ones.
 #
 # TODO: implement classify_intent(user_message) -> one of research/code/summarize/
-# other (a max_tokens=10 call). Implement research_agent / code_agent /
-# summarize_agent (stubs are fine to start) and route(user_message) that
-# dispatches on the intent, falling back to a plain call for "other".
-# Test it on a research, a code, a summarize, and an off-topic input.
+#   other (a max_tokens=10 call). Implement research_agent / code_agent /
+#   summarize_agent and route(user_message) dispatching on the intent, with a plain
+#   call for "other".
+#
+# CHALLENGE (write the answers in comments) — run route() on these EXACT 8 inputs
+# and log which specialist each hit:
+#   "What's the latest version of Python?"            (expect research)
+#   "Write a function to reverse a linked list."      (expect code)
+#   "Summarize this paragraph: <paste any 3 lines>"   (expect summarize)
+#   "Fix the bug in my for loop"                      (expect code)
+#   "Who won the 2022 World Cup?"                     (expect research)
+#   "tl;dr the plot of Hamlet"                        (expect summarize)
+#   "What's the weather like?"                        (ambiguous)
+#   "Tell me a joke"                                  (other)
+#   Which input gets misrouted? Tweak the classifier prompt to fix it — does your
+#   fix break any of the others?
 
 
 # ─── SECTION B4: Human-in-the-loop ───────────────────────────────────────────
-# The agent pauses at key decision points and asks for human confirmation before
-# an irreversible or risky action. Implement it as a tool: ask_human(question) ->
-# the human's typed response.
+# CONCEPT
+#   The agent pauses at a decision point and asks a human before acting. Implement
+#   it as a tool: ask_human(question) prints the question and returns input(). The
+#   hard part is getting it to reliably pause BEFORE acting, not after.
 #
-# TODO: implement ask_human(question) (print the question, return input()).
-# Define ask_human + write_file tool schemas and an agent loop that uses them on:
-#   "Write a summary of machine learning to ml_summary.txt, but ask the human how
-#    detailed it should be before writing."
-# When the agent calls ask_human, invoke it and feed the answer back as a
-# tool_result. Does it actually ask before writing? Try rephrasing the system
-# prompt to make it more or less likely to ask.
-# OBSERVATION:
+# TODO: implement ask_human(question). Define ask_human + write_file schemas and a
+#   loop that runs this EXACT task:
+#       "Write a summary of machine learning to ml_summary.txt, but ask the human
+#        how detailed it should be BEFORE writing."
+#   Feed the human's answer back as a tool_result.
+#
+# CHALLENGE (write the answers in comments):
+#   Does it ask before writing, or write first and ask later? Try these two system
+#   prompt lines and note which reliably makes it pause:
+#     (a) "You may ask the human if helpful."
+#     (b) "You MUST call ask_human and wait for the answer before any write_file."
+#   Why does phrasing change the behavior so much?
