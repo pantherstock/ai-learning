@@ -87,19 +87,15 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 #      improve the prompt when it's an MCP prompt vs an inline string in each agent?
 
 
-# ─── MINI PROJECT: RAG knowledge base as MCP server ──────────────────────────
-# Push to GitHub when the checklist passes.
+# ─── DELIVERABLE ─────────────────────────────────────────────────────────────
+# Add a __main__ block with two branches:
+#   python mcp.py        -> mcp.run()   (starts the server for Claude Code)
+#   python mcp.py --test -> call each tool directly and print results
 #
-#   ☐ retrieve_context(query) @mcp.tool() does cosine-similarity search over the KB
-#     (reuse cosine_similarity from session5.py).
-#   ☐ Each KB chunk exposed as a resource: knowledge://acme/{id}.
-#   ☐ A __main__ block: mcp.run() as a server, plus a `--test` branch that calls the
-#     tools directly (hello, write_file, read_file, retrieve_context).
-#   ☐ Wire this server into your Session 3 research agent so it calls retrieve_context
-#     via MCP instead of a directly-wired Python function.
+# Then add retrieve_context(query) @mcp.tool() that does cosine-similarity search
+# over the KB (reuse cosine_similarity from session5.py).
 #
-# Done when: retrieve_context returns the right chunks via MCP, AND the Session 3
-#   agent works through the server. Note whether the agent's behavior changed and
-#   whether the code got cleaner or messier.
+# Done when: `python mcp.py --test` exercises all tools including retrieve_context,
+# AND you can call retrieve_context from Claude Code via /mcp on a real query.
 #
-# TODO: implement retrieve_context, the resources, and the __main__/--test block.
+# TODO: implement retrieve_context and the __main__/--test block.

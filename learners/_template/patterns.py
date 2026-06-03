@@ -11,14 +11,9 @@ import env  # auto-loads .env — no manual `export` needed
 import anthropic
 import threading
 import time
-import os
 
 client = anthropic.Anthropic()
 MODEL = "claude-haiku-4-5-20251001"
-BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
-
-# TODO: bring forward search(query) from Session 3/4 (with the BRAVE_KEY fallback)
-# — the patterns below reuse it.
 
 
 # ─── WARM-UP: Reflection in 3 lines ──────────────────────────────────────────
@@ -54,7 +49,7 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 #   context — then merge with one synthesis call. threading.Thread is simpler than
 #   asyncio here. The speedup is rarely exactly Nx.
 #
-# TODO: implement run_subagent(subtask, results, key) — a small loop (max 5 steps)
+# TODO: implement run_subagent(subtask, results, key) — a SINGLE call (not a loop)
 #   storing its answer in results[key]. Use these EXACT three subtasks, one per
 #   thread: "Summarize Django for REST APIs", "Summarize FastAPI for REST APIs",
 #   "Summarize Flask for REST APIs". Join the threads, then make ONE synthesis call
@@ -74,8 +69,9 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 #
 # TODO: implement classify_intent(user_message) -> one of research/code/summarize/
 #   other (a max_tokens=10 call). Implement research_agent / code_agent /
-#   summarize_agent and route(user_message) dispatching on the intent, with a plain
-#   call for "other".
+#   summarize_agent as plain single Claude calls (no tools needed — the point is
+#   routing, not agent sophistication), and route(user_message) dispatching on the
+#   intent, with a plain call for "other".
 #
 # CHALLENGE (write the answers in comments) — run route() on these EXACT 8 inputs
 # and log which specialist each hit:
@@ -85,7 +81,7 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 #   "Fix the bug in my for loop"                      (expect code)
 #   "Who won the 2022 World Cup?"                     (expect research)
 #   "tl;dr the plot of Hamlet"                        (expect summarize)
-#   "What's the weather like?"                        (ambiguous)
+#   "What's the weather like?"                        (other)
 #   "Tell me a joke"                                  (other)
 #   Which input gets misrouted? Tweak the classifier prompt to fix it — does your
 #   fix break any of the others?

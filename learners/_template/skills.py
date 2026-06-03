@@ -78,19 +78,6 @@ MODEL = "claude-haiku-4-5-20251001"
 #   How many messages does the researcher accumulate vs the writer? Estimate how
 #   much LARGER one combined agent's context would be doing both phases. Did
 #   splitting them help or hurt the final fastapi.md?
-
-
-# ─── MINI PROJECT: Skill-based research agent ────────────────────────────────
-# Push to GitHub when the checklist passes.
-#
-#   ☐ Refactor the Session 3 research agent to use SearchSkill, FileSkill, and
-#     MemorySkill — the loop knows only the skill INTERFACES, not their internals.
-#   ☐ The agent researches a topic, remembers key facts, and writes a summary file.
-#   ☐ Count lines changed in the loop vs the original inline version.
-#   ☐ Swap SearchSkill's internals for a different fake provider WITHOUT touching
-#     the loop, to prove the interface holds.
-#
-# Done when: the refactored agent runs end-to-end, and swapping a skill's internals
-#   required zero changes to the agent loop.
-#
-# TODO: wire SearchSkill + FileSkill + MemorySkill into one agent loop.
+#   Then: swap SearchSkill's run(query) to return a different hardcoded fake result
+#   WITHOUT changing any line in ResearcherAgent. Does it still work? That swap
+#   test is the whole point of the skill interface.

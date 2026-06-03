@@ -615,12 +615,7 @@ p code, li code {
     </div>
   </div>
 
-  <div class="project-card">
-    <div class="project-tag">Mini Project · push to GitHub</div>
-    <h4>Cache-profiled research agent</h4>
-    <p>Add <code>cache_control</code> to your Session 3 research agent at the right breakpoint, run it cold then warm, and log per-step regular / creation / read tokens to compute the real cost reduction. Exact method and checklist in your file.</p>
-    <p class="chunk-pointer">Full brief &amp; checklist → <code>caching.py</code> · Mini Project</p>
-  </div>
+  <p class="no-project">No mini project — your A2 <code>run_agent_loop</code> numbers are the deliverable: cached vs uncached token totals, cache-hit percentage, and the break-even step count. <span class="chunk-pointer" style="display:inline">What to record → <code>caching.py</code> · Deliverable</span></p>
 
   <div class="session-footer">
     <button class="verify-btn" id="verify-btn-a" onclick="toggleVerify('a')">Verify with Claude →</button>
@@ -754,12 +749,7 @@ p code, li code {
     </div>
   </div>
 
-  <div class="project-card">
-    <div class="project-tag">Mini Project · push to GitHub</div>
-    <h4>Skill-based research agent</h4>
-    <p>Refactor the Session 3 agent so the loop knows only skill interfaces — <code>SearchSkill</code>, <code>FileSkill</code>, <code>MemorySkill</code> — not implementations, then measure how much easier a skill is to swap. Exact before/after checklist in your file.</p>
-    <p class="chunk-pointer">Full brief &amp; checklist → <code>skills.py</code> · Mini Project</p>
-  </div>
+  <p class="no-project">No mini project — the C2 two-phase pipeline is the deliverable. The challenge asks you to swap <code>SearchSkill</code>'s internals without touching <code>ResearcherAgent</code>: if it still runs, the interface held. <span class="chunk-pointer" style="display:inline">Swap test → <code>skills.py</code> · Section C2 Challenge</span></p>
 
   <div class="session-footer">
     <button class="verify-btn" id="verify-btn-c" onclick="toggleVerify('c')">Verify with Claude →</button>
@@ -814,12 +804,7 @@ p code, li code {
     </div>
   </div>
 
-  <div class="project-card">
-    <div class="project-tag">Mini Project · push to GitHub</div>
-    <h4>RAG knowledge base as MCP server</h4>
-    <p>Expose your Session 5 cosine search as an MCP <code>retrieve_context</code> tool plus per-chunk resources, then wire it into the Session 3 agent in place of the direct call. Exact steps and checklist in your file.</p>
-    <p class="chunk-pointer">Full brief &amp; checklist → <code>mcp.py</code> · Mini Project</p>
-  </div>
+  <p class="no-project">No mini project — add <code>retrieve_context</code> (cosine search from Session 5) as an MCP tool and a <code>--test</code> branch, then call it from Claude Code via <code>/mcp</code>. That end-to-end path is the deliverable. <span class="chunk-pointer" style="display:inline">What to build → <code>mcp.py</code> · Deliverable</span></p>
 
   <div class="session-footer">
     <button class="verify-btn" id="verify-btn-d" onclick="toggleVerify('d')">Verify with Claude →</button>
