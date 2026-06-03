@@ -1,0 +1,9 @@
+{
+    "hp": 12,
+    "location": "exit",
+    "inventory": [
+        "golden_key"
+    ],
+    "turn": 5,
+    "status": "won"
+}
