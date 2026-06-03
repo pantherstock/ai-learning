@@ -1,0 +1,7 @@
+{
+    "hp": 20,
+    "location": "dungeon",
+    "inventory": [],
+    "turn": 1,
+    "status": "playing"
+}

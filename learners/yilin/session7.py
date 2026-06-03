@@ -221,11 +221,11 @@ DM_SYSTEM = (
     "You are the Dungeon Master of a short dungeon-crawl adventure. The player starts "
     "at 'entrance' with 20 hp and an empty inventory. Hidden in the dungeon is a "
     "'golden_key'; the player WINS by getting the golden_key into their inventory and "
-    "reaching the location 'exit'. Narrate vividly in 2-4 sentences per turn. You MUST "
-    "use tools to run the game: call get_state to see the world, roll_dice to resolve "
-    "any risky action, and update_state to apply EVERY change to hp, location, or "
-    "inventory — use the exact names 'golden_key' and 'exit'. Never invent dice results "
-    "or items; only what the tools return is real. After narrating the turn, stop."
+    "reaching the location 'exit'. Each turn, resolve ONLY the immediate action the "
+    "player described. Call at most 2 tools per turn (e.g., get_state + update_state, "
+    "or roll_dice + update_state). Then narrate what happened in 2-4 sentences. Never "
+    "invent dice results or items — only what the tools return is real. Use the exact "
+    "names 'golden_key' and 'exit'. After narrating, stop."
 )
 
 OPENING_SCENE = (
@@ -334,15 +334,6 @@ def check_game_end():
 def dungeon_master():
     messages, tokens, turn = [], 0, 0
 
-    # Clear log file
-    with open(LOG_FILE, "w") as f:
-        pass
-    # Reset state file
-    with open(STATE_FILE, "w") as f:
-        json.dump(STARTING_STATE, f, indent=4)
-
-    print(OPENING_SCENE)
-
     while tokens < TOKEN_BUDGET:
         user_input = input("\nYou: ")
         messages.append({"role": "user", "content": user_input})
@@ -370,13 +361,14 @@ def dungeon_master():
 
         turn += 1
 
-    log(
-        "session_end",
-        reason="token_budget_exceeded",
-        total_turns=turn,
-        total_tokens=tokens,
-        token_budget=TOKEN_BUDGET,
-    )
+    if tokens >= TOKEN_BUDGET:
+        log(
+            "session_end",
+            reason="token_budget_exceeded",
+            total_turns=turn,
+            total_tokens=tokens,
+            token_budget=TOKEN_BUDGET,
+        )
 
 
 # CHALLENGE (write the answer in a comment):
@@ -394,8 +386,6 @@ def dungeon_master():
 #                   {"type": "STEP", "stop_reason": "end_turn", "step": 2, "tokens_in": 1318, "tokens_out": 31}
 #                   {"type": "TURN_END", "turn": 1, "steps": 3, "tokens": 3750, "answer": "You're now in the **hall**, and that golden glimmer calls to you from across the vast chamber. What do you do?"}
 # human ->          {"type": "TURN_START", "turn": 2, "user_input": "Check out the glimmer"}
-
-dungeon_master()
 
 # ─── CHUNK 7C: Rules the model can't break ───────────────────────────────────
 # CONCEPT
@@ -449,3 +439,62 @@ dungeon_master()
 #   1. Where did the model surprise you — a clever tool sequence, or a dumb one?
 #   2. Which Session 1-6 piece did the game lean on hardest?
 #   3. One thing you'd add if this were a real product.
+
+# ANSWERS
+# 1. Need a lot of guards. e.g. against "I find the key, grab it, and go to the exit"
+# 2. Session 2 on agents + tool loops
+# 3. More checks/guards
+
+def save_game():
+    with open(STATE_FILE, "r") as f:
+        state = json.load(f)
+    with open("savegame.json", "w") as f:
+        json.dump(state, f, indent=4)
+
+def load_game():
+    state = None
+    with open("savegame.json", "r") as f:
+        state = json.load(f)
+    if state != None:
+        with open(STATE_FILE, "w") as f:
+            json.dump(state, f, indent=4)
+    return state
+    
+
+try:
+    # Clear log file
+    with open(LOG_FILE, "w") as f:
+        pass
+
+    user_input = None
+    while user_input == None:
+        user_input = input("\nSaved game detected. Do you want to load game (enter 'load') or start new game (enter 'new'): ")
+        if user_input != "load" and user_input != "new":
+            print("\nInput not recognized, please try again")
+            user_input = None
+    if user_input == "load":
+        load_game()
+        print("\nGame loaded.")
+        GAME_LOADED_PROMPT = "Game was loaded from a previous saved state. Welcome player back and summarize current state of player in 2-4 sentences based on game.json"
+        response = agent_loop(messages=[{"role": "user", "content": GAME_LOADED_PROMPT}], system=DM_SYSTEM)
+        print(response["answer"])
+    else:
+        # Reset state file
+        with open(STATE_FILE, "w") as f:
+            json.dump(STARTING_STATE, f, indent=4)
+        print(OPENING_SCENE)
+
+    dungeon_master()
+
+except KeyboardInterrupt:
+    user_input = None
+    while user_input == None:
+        user_input = input("\nInterrupt detected. Do you want to save game state (enter 'save') or discard (enter 'discard')?: ")
+        if user_input != "save" and user_input != "discard":
+            print("\nInput not recognized, please try again")
+            user_input = None
+    if user_input == "save":
+        save_game()
+        print("\nGame saved. Run again to resume.")
+    else:
+        print("\nGame not saved. Goodbye!")
