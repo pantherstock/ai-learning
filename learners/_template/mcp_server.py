@@ -5,7 +5,7 @@ Build a server that exposes your tools as MCP capabilities.
 
 Each section is CONCEPT -> TODO -> CHALLENGE (see session1.py).
 Prerequisites: pip install fastmcp   (install separately from the main deps)
-Run the server: python mcp.py   |   Test the tools: python mcp.py --test
+Run the server: python mcp_server.py   |   Test the tools: python mcp_server.py --test
 """
 
 import env  # auto-loads .env — no manual `export` needed
@@ -38,7 +38,7 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 
 # ─── WARM-UP: Hello-world MCP server ─────────────────────────────────────────
 # TODO: define a hello(name: str) -> str tool with @mcp.tool() that returns a
-# greeting confirming the server is up. Run `python mcp.py --test` (or connect from
+# greeting confirming the server is up. Run `python mcp_server.py --test` (or connect from
 # Claude Code via /mcp) and call it. Note: the tool looks just like a Session 2 tool
 # schema — MCP only standardizes how it's discovered and called.
 
@@ -52,7 +52,7 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 # TODO: expose search_web(query), write_file(path, content), and read_file(path) as
 #   @mcp.tool() functions (reuse earlier logic; search_web falls back to fake
 #   results when BRAVE_KEY is unset). Add word_count(text: str) -> str.
-#   Run `python mcp.py --test` to confirm they work, then call word_count from
+#   Run `python mcp_server.py --test` to confirm they work, then call word_count from
 #   Claude Code on the EXACT input "the quick brown fox jumps over the lazy dog".
 #
 # CHALLENGE (write the answers in comments):
@@ -89,13 +89,13 @@ BRAVE_KEY = os.environ.get("BRAVE_SEARCH_API_KEY", "")
 
 # ─── DELIVERABLE ─────────────────────────────────────────────────────────────
 # Add a __main__ block with two branches:
-#   python mcp.py        -> mcp.run()   (starts the server for Claude Code)
-#   python mcp.py --test -> call each tool directly and print results
+#   python mcp_server.py        -> mcp.run()   (starts the server for Claude Code)
+#   python mcp_server.py --test -> call each tool directly and print results
 #
 # Then add retrieve_context(query) @mcp.tool() that does cosine-similarity search
 # over the KB (reuse cosine_similarity from session5.py).
 #
-# Done when: `python mcp.py --test` exercises all tools including retrieve_context,
+# Done when: `python mcp_server.py --test` exercises all tools including retrieve_context,
 # AND you can call retrieve_context from Claude Code via /mcp on a real query.
 #
 # TODO: implement retrieve_context and the __main__/--test block.
